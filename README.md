@@ -97,7 +97,7 @@ git status
 
 ---
 
-### ✔ Up to here: **Visual Studio 터미널**에서 하는 작업
+### ✔ Up to this point: all steps are performed in the Visual Studio terminal
 
 ---
 
