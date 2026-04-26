@@ -17,6 +17,12 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
 import com.example.cameraocrtest.data.DocumentData;
+import com.example.cameraocrtest.data.DocumentBlock;
+import com.example.cameraocrtest.data.DocumentLine;
+import com.example.cameraocrtest.data.DocumentWord;
+import com.example.cameraocrtest.tokenization.koElectraTokenizer;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     // Core Managers
     private CameraManager cameraManager;
     private OcrManager ocrManager;
+    private koElectraTokenizer tokenizer;
 
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -66,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
     private void initManagers() {
         cameraManager = new CameraManager(this, this);
         ocrManager = new OcrManager();
+        // 앱 시작 시 한 번만 초기화 (assets/vocab.txt 참조)
+        tokenizer = new koElectraTokenizer(this, "vocab.txt");
     }
 
     private void setupListeners() {
@@ -83,8 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onSuccess(DocumentData documentData) {
-
-                            if ( documentData.getBlocks().isEmpty()) {
+                            if (documentData.getBlocks().isEmpty()) {
                                 runOnUiThread(() -> {
                                     tvOcrResult.setText("텍스트를 인식할 수 없습니다.");
                                     updateUIState(UIState.RESULT);
@@ -92,9 +100,37 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
 
-                            // 성공적으로 추출된 전체 텍스트 띄우기
+                            StringBuilder fullLogBuilder = new StringBuilder();
+                            fullLogBuilder.append("원본\n");
+                            fullLogBuilder.append(documentData.getFullText());
+
+                            fullLogBuilder.append("토큰화 데이터 로그");
+                            // 1. 블록 순회
+                            for (DocumentBlock block : documentData.getBlocks()) {
+
+                                // 2. 블록 내부 라인 순회
+                                for (DocumentLine line : block.getLines()) {
+                                    String lineText = line.getLineText().trim();
+
+                                    if (lineText.isEmpty()) continue;
+
+                                    // 3. 라인별 토큰화
+                                    List<String> tokens = tokenizer.getTokens(lineText);
+                                    int[] inputIds = tokenizer.tokenizeAndPad(lineText);
+
+                                    fullLogBuilder.append(String.format("[Block %d - Line %d] 분석\n",
+                                            block.getBlockIndex(), line.getLineIndex()));
+                                    fullLogBuilder.append("원본라인 : " + line.getLineText() + "\n");
+                                    fullLogBuilder.append(tokenizer.getTokenizationLog(tokens, inputIds));
+                                    fullLogBuilder.append("\n\n");
+
+
+                                }
+                            }
+
+                            // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
                             runOnUiThread(() -> {
-                                tvOcrResult.setText(documentData.getFullText());
+                                tvOcrResult.setText(fullLogBuilder.toString());
                                 updateUIState(UIState.RESULT);
                             });
                         }
