@@ -25,7 +25,7 @@ public class MlKitDocumentParser {
 
     //여기서의 Text 는 정말 그 일반적인 텍스트가 아닌 mlkit vision 에서 채득된 정보가 모두 담긴 객체임
     // 근데 왜 Text 라는 이름이냐 -> 나도 몰러유..
-    public static DocumentData paser(Text visionText)
+    public static DocumentData Paser(Text visionText)
     {
         // 이친구에게 데이터를 추출해서 넣고 리턴 시킴
         DocumentData documentData = new DocumentData();
@@ -39,6 +39,8 @@ public class MlKitDocumentParser {
             DocumentBlock myBlock = new DocumentBlock(blockIndex);
 
             int lineIndex = 0;
+            int sentenceIndex = 0;
+
             //라인 생성 후 블록에 추가 하는 반복문
             for (Text.Line mlLine : mlBlock.getLines()) {
                 DocumentLine myLine = new DocumentLine(lineIndex);
@@ -50,12 +52,12 @@ public class MlKitDocumentParser {
 
                     // 단어 생성 및 라인에 추가
                     DocumentWord myWord = new DocumentWord(blockIndex, lineIndex, word, boundingBox);
-                    myLine.addWord(myWord);
+                    myLine.AddWord(myWord);
                 }
-                myBlock.addLine(myLine);
+                myBlock.AddLine(myLine);
                 lineIndex++;
             }
-            documentData.addBlock(myBlock);
+            documentData.AddBlock(myBlock);
             blockIndex++;
         }
 

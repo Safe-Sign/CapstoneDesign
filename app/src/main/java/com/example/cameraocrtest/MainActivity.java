@@ -19,7 +19,6 @@ import androidx.core.content.ContextCompat;
 import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentLine;
-import com.example.cameraocrtest.data.DocumentWord;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
 
 import java.util.List;
@@ -92,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onSuccess(DocumentData documentData) {
-                            if (documentData.getBlocks().isEmpty()) {
+                            if (documentData.GetBlocks().isEmpty()) {
                                 runOnUiThread(() -> {
                                     tvOcrResult.setText("텍스트를 인식할 수 없습니다.");
                                     updateUIState(UIState.RESULT);
@@ -102,15 +101,15 @@ public class MainActivity extends AppCompatActivity {
 
                             StringBuilder fullLogBuilder = new StringBuilder();
                             fullLogBuilder.append("원본\n");
-                            fullLogBuilder.append(documentData.getFullText());
+                            fullLogBuilder.append(documentData.GetFullText());
 
                             fullLogBuilder.append("토큰화 데이터 로그");
                             // 1. 블록 순회
-                            for (DocumentBlock block : documentData.getBlocks()) {
+                            for (DocumentBlock block : documentData.GetBlocks()) {
 
                                 // 2. 블록 내부 라인 순회
-                                for (DocumentLine line : block.getLines()) {
-                                    String lineText = line.getLineText().trim();
+                                for (DocumentLine line : block.GetLines()) {
+                                    String lineText = line.GetLineText().trim();
 
                                     if (lineText.isEmpty()) continue;
 
@@ -119,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
                                     int[] inputIds = tokenizer.tokenizeAndPad(lineText);
 
                                     fullLogBuilder.append(String.format("[Block %d - Line %d] 분석\n",
-                                            block.getBlockIndex(), line.getLineIndex()));
-                                    fullLogBuilder.append("원본라인 : " + line.getLineText() + "\n");
+                                            block.GetBlockIndex(), line.GetLineIndex()));
+                                    fullLogBuilder.append("원본라인 : " + line.GetLineText() + "\n");
                                     fullLogBuilder.append(tokenizer.getTokenizationLog(tokens, inputIds));
                                     fullLogBuilder.append("\n\n");
 

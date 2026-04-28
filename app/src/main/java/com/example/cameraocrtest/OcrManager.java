@@ -28,7 +28,7 @@ public class OcrManager {
         recognizer.process(image)
                 .addOnSuccessListener(result -> {
                     // OCR 에서 얻어낸 데이터 그 자체를 즉 오브젝트 자체를 파서에게 전달
-                    DocumentData documentData = MlKitDocumentParser.paser(result);
+                    DocumentData documentData = MlKitDocumentParser.Paser(result);
                     listener.onSuccess(documentData);
                 })
                 .addOnFailureListener(e -> {
