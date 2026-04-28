@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentLine;
+import com.example.cameraocrtest.data.DocumentSentence;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
 
 import java.util.List;
@@ -108,18 +109,18 @@ public class MainActivity extends AppCompatActivity {
                             for (DocumentBlock block : documentData.GetBlocks()) {
 
                                 // 2. 블록 내부 라인 순회
-                                for (DocumentLine line : block.GetLines()) {
-                                    String lineText = line.GetLineText().trim();
+                                for (DocumentSentence sentence : block.getSentences()) {
+                                    String sentenceText = sentence.getSentenceText().trim();
 
-                                    if (lineText.isEmpty()) continue;
+                                    if (sentenceText.isEmpty()) continue;
 
                                     // 3. 라인별 토큰화
-                                    List<String> tokens = tokenizer.getTokens(lineText);
-                                    int[] inputIds = tokenizer.tokenizeAndPad(lineText);
+                                    List<String> tokens = tokenizer.getTokens(sentenceText);
+                                    int[] inputIds = tokenizer.tokenizeAndPad(sentenceText);
 
-                                    fullLogBuilder.append(String.format("[Block %d - Line %d] 분석\n",
-                                            block.GetBlockIndex(), line.GetLineIndex()));
-                                    fullLogBuilder.append("원본라인 : " + line.GetLineText() + "\n");
+                                    fullLogBuilder.append(String.format("[Block %d - Sentence %d] 분석\n",
+                                            block.GetBlockIndex(), sentence.getSentenceIndex()));
+                                    fullLogBuilder.append("원본문장 : " + sentence.getSentenceText() + "\n");
                                     fullLogBuilder.append(tokenizer.getTokenizationLog(tokens, inputIds));
                                     fullLogBuilder.append("\n\n");
 
