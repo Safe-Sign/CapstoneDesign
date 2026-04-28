@@ -1,33 +1,42 @@
 package com.example.cameraocrtest.data;
 
-import com.example.cameraocrtest.data.DocumentLine;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class DocumentBlock {
     private final int blockIndex;
     private final List<DocumentLine> lines;
+    private final List<DocumentSentence> sentences;
 
     public DocumentBlock(int blockIndex) {
         this.blockIndex = blockIndex;
         this.lines = new ArrayList<>();
+        this.sentences = new ArrayList<>();
     }
 
-    public void addLine(DocumentLine line) {
+    public void AddLine(DocumentLine line) {
         this.lines.add(line);
     }
-    public List<DocumentLine> getLines() {
+
+    public void addSentence(DocumentSentence sentence) {
+        this.sentences.add(sentence);
+    }
+
+    public List<DocumentLine> GetLines() {
         return lines;
     }
-    public int getBlockIndex() {
+
+    public List<DocumentSentence> getSentences() {
+        return sentences;
+    }
+    public int GetBlockIndex() {
         return blockIndex;
     }
 
-    public String getBlockText() {
+    public String GetBlockText() {
         StringBuilder sb = new StringBuilder();
         for (DocumentLine line : lines) {
-            sb.append(line.getLineText()).append("\n");
+            sb.append(line.GetLineText()).append("\n");
         }
         return sb.toString().trim();
     }

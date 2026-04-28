@@ -51,6 +51,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.crashlytics.buildtools)
     // CameraX core library
     // CameraX core library
     val camerax_version = "1.3.1"
@@ -67,4 +68,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("com.google.guava:guava:33.1.0-android")
 }

@@ -20,21 +20,21 @@ public class DocumentLine {
         this.words = new ArrayList<>();
     }
 
-    public void addWord(DocumentWord word)
+    public void AddWord(DocumentWord word)
     {
         this.words.add(word);
     }
     public List<DocumentWord> getWords() {
         return words;
     }
-    public int getLineIndex() {
+    public int GetLineIndex() {
         return lineIndex;
     }
 
-    public String getLineText() {
+    public String GetLineText() {
         StringBuilder sb = new StringBuilder();
         for (DocumentWord word : words) {
-            sb.append(word.getWordText()).append(" ");
+            sb.append(word.GetWordText()).append(" ");
         }
         // 마지막 띄어쓰기 1개만 제거하고 반환
         return sb.toString().trim();
