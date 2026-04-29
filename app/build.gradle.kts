@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.cameraocrtest"
-        minSdk = 25
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -70,4 +70,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation("com.google.guava:guava:33.1.0-android")
+
+    implementation("com.google.mlkit:translate:17.0.3")
 }

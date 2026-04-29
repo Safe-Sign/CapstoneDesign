@@ -20,6 +20,8 @@ import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentLine;
 import com.example.cameraocrtest.data.DocumentSentence;
+import com.example.cameraocrtest.domain.detector.ProperNounDetector;
+import com.example.cameraocrtest.domain.model.ProperNounHit;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
 
 import java.util.List;
@@ -38,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private CameraManager cameraManager;
     private OcrManager ocrManager;
     private koElectraTokenizer tokenizer;
+
+    // ProperNounDetection
+    private ProperNounDetector properNounDetector;
 
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -75,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         ocrManager = new OcrManager();
         // 앱 시작 시 한 번만 초기화 (assets/vocab.txt 참조)
         tokenizer = new koElectraTokenizer(this, "vocab.txt");
+        properNounDetector = new ProperNounDetector();
     }
 
     private void setupListeners() {
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     ocrManager.extractText(bitmap, new OcrManager.OnOcrCompleteListener() {
 
                         @Override
-                        public void onSuccess(DocumentData documentData) {
+                        public void onSuccess(DocumentData documentData) throws InterruptedException {
                             if (documentData.GetBlocks().isEmpty()) {
                                 runOnUiThread(() -> {
                                     tvOcrResult.setText("텍스트를 인식할 수 없습니다.");
@@ -126,6 +132,14 @@ public class MainActivity extends AppCompatActivity {
 
 
                                 }
+                            }
+
+                            // ProperNounCheck
+                            properNounDetector.startDetection(documentData);
+                            List<ProperNounHit> result = properNounDetector.getDetectedWords();
+                            fullLogBuilder.append("proper noun detection");
+                            for (var i : result) {
+                                fullLogBuilder.append(i.origin);
                             }
 
                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
