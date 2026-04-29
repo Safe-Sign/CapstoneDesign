@@ -15,6 +15,9 @@ public class DocumentWord {
     private final Rect boundingBox;
     private final String wordText;
 
+    // -1 의 경우 일단 라인은 지정되었는데(라인은 생성시 지정이되기 때문) 문장구조화 과정을 거치지 않을때
+    // 사실상 오류 검출용임
+    private int sentenceIndex = -1;
     public DocumentWord(
                           int blockIndex,
                           int lineIndex,
@@ -29,9 +32,17 @@ public class DocumentWord {
 
     }
 
+
+    //동일 패키지 내의 파서 혹은 Document Data 에서 데이터 셋을 구축후 문장구조를 잡는 과정에서
+    //인덱스 부여를 위한 함수
+    protected void SetSentenceIndex(int sentenceIndex)
+    {
+        this.sentenceIndex = sentenceIndex;
+    }
+
     // 외부에서 데이터를 읽기 위한 Getter 메서드들
-    public int getBlockIndex() { return blockIndex; }
-    public int getLineIndex() { return lineIndex; }
-    public String getWordText() { return wordText; }
-    public Rect getBoundingBox() { return boundingBox; }
+    public int GetBlockIndex() { return blockIndex; }
+    public int GetLineIndex() { return lineIndex; }
+    public String GetWordText() { return wordText; }
+    public Rect GetBoundingBox() { return boundingBox; }
 }
