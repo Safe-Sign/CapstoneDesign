@@ -77,8 +77,8 @@ public class ProperNounDetector {
                 // matching
 
                 String commonSubstring = longestCommonSubstring(resultNor, transliteratedNor);
-                float matchingRatio = (float)commonSubstring.length() / (float)transliteratedNor.length();
-                if (matchingRatio > 0.65F) {
+                float matchingRatio = 2.0F * commonSubstring.length() / (float)(transliteratedNor.length() + resultNor.length());
+                if (matchingRatio > 0.4F) {
                     matchedList.add(new ProperNounHit(i.sequenceNumber, i.origin, i.sourceInfo));
                 }
 
@@ -87,7 +87,6 @@ public class ProperNounDetector {
                     listener.onComplete(matchedList);
                 }
             });
-
         }
     }
 
