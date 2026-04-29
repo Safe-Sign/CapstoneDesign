@@ -135,22 +135,24 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             // ProperNounCheck
-                            properNounDetector.startDetection(documentData);
-                            while (!properNounDetector.taskDone()) {
-                                wait(10);
-                            }
+                            properNounDetector.startDetection(documentData
+                                    , new ProperNounDetector.OnDetectionCompleteListener() {
 
-                            List<ProperNounHit> result = properNounDetector.getDetectedWords();
-                            fullLogBuilder.append("proper noun detection");
-                            for (var i : result) {
-                                fullLogBuilder.append(i.origin);
-                            }
+                                        @Override
+                                        public void onComplete(List<ProperNounHit> result) {
+                                            fullLogBuilder.append("proper noun detection\n");
+                                            for (var i : result) {
+                                                fullLogBuilder.append(i.origin).append("\n");
+                                            }
+                                            // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
+                                            runOnUiThread(() -> {
+                                                tvOcrResult.setText(fullLogBuilder.toString());
+                                                updateUIState(UIState.RESULT);
+                                            });
+                                        }
+                                    });
 
-                            // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
-                            runOnUiThread(() -> {
-                                tvOcrResult.setText(fullLogBuilder.toString());
-                                updateUIState(UIState.RESULT);
-                            });
+
                         }
 
                         @Override

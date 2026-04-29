@@ -13,11 +13,15 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import kotlinx.coroutines.internal.ArrayQueue;
 
 public class ProperNounDetector {
+
+    public interface OnDetectionCompleteListener {
+        void onComplete(List<ProperNounHit> result);
+    }
     private static class DetectionRequest {
         public final Task<String> translated;
         public final String transliterated;
@@ -36,18 +40,18 @@ public class ProperNounDetector {
     private final Queue<DetectionRequest> translationQueue;
     private final List<ProperNounHit> matchedList;
     private DocumentData input;
-    int sequenceCount;
+    AtomicInteger sequenceCount;
     public ProperNounDetector() {
         translationQueue = new LinkedList<>();
         matchedList = new ArrayList<>();
         Translator.warmUp(TranslateLanguage.KOREAN, TranslateLanguage.ENGLISH);
         input = null;
-        sequenceCount = 0;
+        sequenceCount = new AtomicInteger(0);
     }
 
-    public void startDetection(DocumentData input) {
+    public void startDetection(DocumentData input, OnDetectionCompleteListener listener) {
         this.input = input;
-        sequenceCount = 0;
+        sequenceCount.set(0);
         for (var i : input.GetBlocks()) {
             for (var j : i.getSentences()) {
                 for (var k : j.getWords()) {
@@ -55,8 +59,9 @@ public class ProperNounDetector {
                             Translator.translate(TranslateLanguage.KOREAN, TranslateLanguage.ENGLISH, k.GetWordText())
                             , Transliterator.transliterate(k.GetWordText())
                             , k.GetWordText()
-                            , sequenceCount++
+                            , sequenceCount.get()
                             , k));
+                    sequenceCount.incrementAndGet();
                 }
             }
         }
@@ -64,12 +69,17 @@ public class ProperNounDetector {
 
         for (var i : translationQueue) {
             i.translated.addOnSuccessListener(result -> {
-                sequenceCount--;
+                sequenceCount.decrementAndGet();
                 // matching
-                String commonSubstring = longestCommonSubstring(i.translated.getResult(), i.transliterated);
+                String commonSubstring = longestCommonSubstring(result, i.transliterated);
                 float matchingRatio = (float)commonSubstring.length() / (float)i.transliterated.length();
                 if (matchingRatio > 0.65F) {
                     matchedList.add(new ProperNounHit(i.sequenceNumber, i.origin, i.sourceInfo));
+                }
+
+                if (taskDone()) {
+                    matchedList.sort(Comparator.comparingInt(p -> p.sequenceNumber));
+                    listener.onComplete(matchedList);
                 }
             });
 
@@ -77,7 +87,7 @@ public class ProperNounDetector {
     }
 
     public boolean taskDone() {
-        return sequenceCount == 0;
+        return sequenceCount.get() == 0;
     }
 
     public List<ProperNounHit> getDetectedWords() throws InterruptedException {
