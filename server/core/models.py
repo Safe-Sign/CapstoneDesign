@@ -31,3 +31,4 @@ class OCRData(Base):
     text = Column(Text, nullable=False)                  # OCR 추출 텍스트
     timestamp = Column(String)                           # 수신 시각
     status = Column(String, default="수신 완료")         # 처리 상태
+    llm_result = Column(Text, nullable=True)
