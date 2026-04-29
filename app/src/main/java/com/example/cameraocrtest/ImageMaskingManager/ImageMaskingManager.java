@@ -29,6 +29,21 @@ public class ImageMaskingManager {
         return imageBufferList.size()-1;
    }
 
+   public ImageMaskBuffer PopImageBufferList() {
+       int size = imageBufferList.size();
+       if (size >= 1)
+       {
+           ImageMaskBuffer bitmap =  imageBufferList.get(size - 1);
+           imageBufferList.remove(size - 1);
+           return bitmap;
+       }
+       else
+       {
+           return null;
+       }
+
+   }
+
    public int ImageCount()
    {
        return imageBufferList.size();

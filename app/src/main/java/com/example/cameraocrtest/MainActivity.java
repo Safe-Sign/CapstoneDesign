@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,13 +17,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
+import com.example.cameraocrtest.ImageMaskingManager.ImageMaskingManager;
 import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentLine;
 import com.example.cameraocrtest.data.DocumentSentence;
+import com.example.cameraocrtest.data.DocumentWord;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
 
 import java.util.List;
+
+import kotlin._Assertions;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private CameraManager cameraManager;
     private OcrManager ocrManager;
     private koElectraTokenizer tokenizer;
+
+    private ImageView ivMaskedResult;
+    private ImageMaskingManager imageMaskingManager;
+
 
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -68,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         tvOcrResult = findViewById(R.id.tvOcrResult);
         btnCapture = findViewById(R.id.btnCapture);
         btnBackToCamera = findViewById(R.id.btnBackToCamera);
+        ivMaskedResult = findViewById(R.id.ivMaskedResult);
     }
 
     private void initManagers() {
@@ -75,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         ocrManager = new OcrManager();
         // 앱 시작 시 한 번만 초기화 (assets/vocab.txt 참조)
         tokenizer = new koElectraTokenizer(this, "vocab.txt");
+        imageMaskingManager = new ImageMaskingManager();
     }
 
     private void setupListeners() {
@@ -86,10 +97,10 @@ public class MainActivity extends AppCompatActivity {
             cameraManager.takePicture(new CameraManager.OnPictureTakenListener() {
                 @Override
                 public void onSuccess(Bitmap bitmap) {
-
+                    //사진 찍은 이미지 마스킹 manager 에 전달
+                    imageMaskingManager.addInputImage(bitmap);
                     // 2 촬영된 Bitmap을 그대로 OCR 분석에 전달
                     ocrManager.extractText(bitmap, new OcrManager.OnOcrCompleteListener() {
-
                         @Override
                         public void onSuccess(DocumentData documentData) {
                             if (documentData.GetBlocks().isEmpty()) {
@@ -105,14 +116,21 @@ public class MainActivity extends AppCompatActivity {
                             fullLogBuilder.append(documentData.GetFullText());
 
                             fullLogBuilder.append("토큰화 데이터 로그");
+
                             // 1. 블록 순회
                             for (DocumentBlock block : documentData.GetBlocks()) {
-
+                                int i = 0;
                                 // 2. 블록 내부 라인 순회
                                 for (DocumentSentence sentence : block.getSentences()) {
                                     String sentenceText = sentence.getSentenceText().trim();
 
                                     if (sentenceText.isEmpty()) continue;
+
+                                    i++;
+                                    if( i % 2 == 0)
+                                    {
+                                        imageMaskingManager.DocumentSentenceMasking(0 , 2 , sentence);
+                                    }
 
                                     // 3. 라인별 토큰화
                                     List<String> tokens = tokenizer.getTokens(sentenceText);
@@ -128,8 +146,12 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
 
+                            Bitmap outImage = imageMaskingManager.GetMaskingImage(0);
                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
                             runOnUiThread(() -> {
+                                if (outImage != null) {
+                                    ivMaskedResult.setImageBitmap(outImage);
+                                }
                                 tvOcrResult.setText(fullLogBuilder.toString());
                                 updateUIState(UIState.RESULT);
                             });
@@ -156,7 +178,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 결과 화면에서 다시 카메라로 돌아가는 버튼
-        btnBackToCamera.setOnClickListener(v -> updateUIState(UIState.CAMERA));
+        btnBackToCamera.setOnClickListener(v -> {
+
+            imageMaskingManager.PopImageBufferList();
+            updateUIState(UIState.CAMERA);
+        });
     }
 
     private void checkCameraPermission() {
