@@ -81,11 +81,6 @@ public class ProperNounDetector {
     }
 
     public List<ProperNounHit> getDetectedWords() throws InterruptedException {
-        if (!taskDone()) {
-            for (var i : translationQueue) {
-                i.translated.wait();
-            }
-        }
         matchedList.sort(Comparator.comparingInt(p -> p.sequenceNumber));
         return matchedList;
     }

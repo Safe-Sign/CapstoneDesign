@@ -136,6 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
                             // ProperNounCheck
                             properNounDetector.startDetection(documentData);
+                            while (!properNounDetector.taskDone()) {
+                                wait(10);
+                            }
+
                             List<ProperNounHit> result = properNounDetector.getDetectedWords();
                             fullLogBuilder.append("proper noun detection");
                             for (var i : result) {
