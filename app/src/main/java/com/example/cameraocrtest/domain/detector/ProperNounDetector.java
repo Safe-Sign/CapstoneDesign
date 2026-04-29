@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.text.Normalizer;
 
 import kotlinx.coroutines.internal.ArrayQueue;
 
@@ -70,9 +71,13 @@ public class ProperNounDetector {
         for (var i : translationQueue) {
             i.translated.addOnSuccessListener(result -> {
                 sequenceCount.decrementAndGet();
+                // Text Normalize
+                String resultNor = result.toLowerCase().replaceAll("[^a-z0-9]+", "");
+                String transliteratedNor = i.transliterated.toLowerCase().replaceAll("[^a-z0-9]+", "");
                 // matching
-                String commonSubstring = longestCommonSubstring(result, i.transliterated);
-                float matchingRatio = (float)commonSubstring.length() / (float)i.transliterated.length();
+
+                String commonSubstring = longestCommonSubstring(resultNor, transliteratedNor);
+                float matchingRatio = (float)commonSubstring.length() / (float)transliteratedNor.length();
                 if (matchingRatio > 0.65F) {
                     matchedList.add(new ProperNounHit(i.sequenceNumber, i.origin, i.sourceInfo));
                 }
@@ -96,7 +101,8 @@ public class ProperNounDetector {
     }
 
     private static String longestCommonSubstring(String a, String b) {
-        int n = a.length(), m = b.length();
+        int n = a.length();
+        int m = b.length();
         int[][] dp = new int[n + 1][m + 1];
 
         int maxLen = 0;

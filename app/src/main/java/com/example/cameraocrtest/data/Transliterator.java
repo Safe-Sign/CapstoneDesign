@@ -7,6 +7,6 @@ public final class Transliterator {
     private Transliterator() {}
 
     public static String transliterate(String input) {
-        return ANY_LATIN_ASCII.transliterate(input).toLowerCase();
+        return ANY_LATIN_ASCII.transliterate(input);
     }
 }
