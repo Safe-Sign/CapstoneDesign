@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     // Core Managers
     private CameraManager cameraManager;
     private OcrManager ocrManager;
+
+    KoElectraTfliteEngine koElectraEngine;
     private koElectraTokenizer tokenizer;
 
     private ImageView ivMaskedResult;
@@ -78,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnBackToCamera = findViewById(R.id.btnBackToCamera);
         ivMaskedResult = findViewById(R.id.ivMaskedResult);
+
     }
 
     private void initManagers() {
@@ -85,7 +88,10 @@ public class MainActivity extends AppCompatActivity {
         ocrManager = new OcrManager();
         // 앱 시작 시 한 번만 초기화 (assets/vocab.txt 참조)
         tokenizer = new koElectraTokenizer(this, "vocab.txt");
+
         imageMaskingManager = new ImageMaskingManager();
+
+        koElectraEngine = new KoElectraTfliteEngine(this, tokenizer);
     }
 
     private void setupListeners() {
@@ -115,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
                             fullLogBuilder.append("원본\n");
                             fullLogBuilder.append(documentData.GetFullText());
 
-                            fullLogBuilder.append("토큰화 데이터 로그");
 
+                            fullLogBuilder.append("\n[마스킹본]\n");
                             // 1. 블록 순회
                             for (DocumentBlock block : documentData.GetBlocks()) {
                                 int i = 0;
@@ -132,19 +138,18 @@ public class MainActivity extends AppCompatActivity {
                                         imageMaskingManager.DocumentSentenceMasking(0 , 2 , sentence);
                                     }
 
-                                    // 3. 라인별 토큰화
-                                    List<String> tokens = tokenizer.getTokens(sentenceText);
-                                    int[] inputIds = tokenizer.tokenizeAndPad(sentenceText);
-
-                                    fullLogBuilder.append(String.format("[Block %d - Sentence %d] 분석\n",
-                                            block.GetBlockIndex(), sentence.getSentenceIndex()));
-                                    fullLogBuilder.append("원본문장 : " + sentence.getSentenceText() + "\n");
-                                    fullLogBuilder.append(tokenizer.getTokenizationLog(tokens, inputIds));
-                                    fullLogBuilder.append("\n\n");
-
-
+                                    List<DocumentWord> words = koElectraEngine.runInference(sentence);
+                                    for(DocumentWord word: words)
+                                    {
+                                        imageMaskingManager.DocumentWordMasking(0 , 1 , word);
+                                    }
+                                    fullLogBuilder.append("\n");
+                                    fullLogBuilder.append(sentence.getSentenceText());
+                                    fullLogBuilder.append("\n");
                                 }
                             }
+
+
 
                             Bitmap outImage = imageMaskingManager.GetMaskingImage(0);
                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
