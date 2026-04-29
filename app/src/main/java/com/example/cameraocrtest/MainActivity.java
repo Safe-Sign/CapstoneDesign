@@ -146,11 +146,11 @@ public class MainActivity extends AppCompatActivity {
                                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
                                             runOnUiThread(() -> {
                                                 tvOcrResult.setText(fullLogBuilder.toString());
-
+                                                updateUIState(UIState.RESULT);
                                             });
                                         }
                                     });
-                            updateUIState(UIState.RESULT);
+
                         }
 
                         @Override
