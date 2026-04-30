@@ -153,6 +153,25 @@ async def get_data(db: Session = Depends(get_db)):
     return {"count": len(items), "items": items}
 
 
+@router.get("/data/{session_id}")
+async def get_data_by_session(session_id: str, db: Session = Depends(get_db)):
+    data = db.query(OCRData).filter(OCRData.session_id == session_id).order_by(OCRData.id.desc()).all()
+    if not data:
+        raise HTTPException(status_code=404, detail="해당 session_id의 데이터가 없습니다.")
+    items = [
+        {
+            "id": d.id,
+            "session_id": d.session_id,
+            "filename": d.filename,
+            "timestamp": d.timestamp,
+            "status": d.status,
+            "llm_result": d.llm_result
+        }
+        for d in data
+    ]
+    return {"count": len(items), "items": items}
+
+
 @router.post("/analyze/sentences")
 async def analyze_sentences(req: SentenceAnalyzeRequest, db: Session = Depends(get_db)):
     if not req.sentences:

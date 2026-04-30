@@ -11,6 +11,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pathlib import Path
 import logging
@@ -31,6 +32,13 @@ BASE_DIR = Path(__file__).parent
 # ── 앱 초기화 ────────────────────────────────────────────────
 
 app = FastAPI(title="근로계약서 분석 서버")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Jinja2 템플릿 엔진 (대시보드 HTML 렌더링)
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
