@@ -39,6 +39,8 @@ google-services.json
 # Python cache files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # Local database files
 *.db
