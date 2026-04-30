@@ -27,6 +27,9 @@ def test_analyze_sentences():
     assert sorted(ids) == [1, 2, 3]
     for x in results:
         assert x["state"] in [0, 1, 2, 3]
+        assert "reason" in x and isinstance(x["reason"], str)
+        assert "law" in x and isinstance(x["law"], str)
+        assert "action" in x and x["action"] in ["이상 없음", "검토 권장", "수정 권장", "수정 요청"]
     print("PASS /analyze/sentences")
 
 def test_empty_sentences():

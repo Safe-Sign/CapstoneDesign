@@ -15,6 +15,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pathlib import Path
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from core.database import engine, get_db, Base
 from core.models import OCRData
@@ -33,9 +37,12 @@ BASE_DIR = Path(__file__).parent
 
 app = FastAPI(title="근로계약서 분석 서버")
 
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+_origins = ["*"] if _raw_origins == "*" else [o.strip() for o in _raw_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
