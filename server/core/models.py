@@ -4,7 +4,8 @@
 # DB에 실제로 생성될 테이블 구조를 정의한다.
 # ─────────────────────────────────────────────────────────────
 
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, DateTime
+from datetime import datetime
 from .database import Base
 
 
@@ -29,6 +30,6 @@ class OCRData(Base):
     session_id = Column(String, default="unknown")       # 클라이언트 세션 ID
     filename = Column(String, default="unknown")         # 원본 이미지 파일명
     text = Column(Text, nullable=False)                  # OCR 추출 텍스트
-    timestamp = Column(String)                           # 수신 시각
+    timestamp = Column(DateTime, default=datetime.now)   # 수신 시각
     status = Column(String, default="수신 완료")         # 처리 상태
     llm_result = Column(Text, nullable=True)

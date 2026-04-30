@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+ocr_data.db
+.git/
+test.py
+test_request.json

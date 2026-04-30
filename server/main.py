@@ -13,11 +13,17 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from pathlib import Path
+import logging
 
 from core.database import engine, get_db, Base
 from core.models import OCRData
 from core.connections import manager
 from routers import analyze
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 # 현재 파일(main.py) 기준으로 templates 폴더 절대 경로 설정
 BASE_DIR = Path(__file__).parent
@@ -36,6 +42,13 @@ Base.metadata.create_all(bind=engine)
 
 # /analyze, /data 엔드포인트를 routers/analyze.py 에서 가져옴
 app.include_router(analyze.router)
+
+
+# ── 헬스체크 ─────────────────────────────────────────────────
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 # ── 대시보드 ─────────────────────────────────────────────────

@@ -1,175 +1,102 @@
-# CapstoneDesign
-개인정보 보호형 LLM 기반 실시간 근로계약서 분석 및 가이드 시스템
+# 개인정보 보호형 LLM 기반 실시간 근로계약서 분석 시스템
 
+OCR로 근로계약서를 읽고, 문장별로 독소조항 위험도를 분석해 반환하는 서버입니다.
 
-# 🛠 **Git Workflow Guide (Visual C++ in Visual Studio)**
+## 기술 스택
 
-This workflow explains how to manage issues, branches, commits, and pull requests when developing **C++ projects in Visual Studio** using GitHub.
+- **FastAPI** — REST API 서버
+- **Groq (LLaMA 3.3 70B)** — 독소조항 분석 LLM
+- **SQLAlchemy + SQLite** — 분석 기록 저장
+- **WebSocket** — 실시간 결과 브로드캐스트
 
----
-
-## ✅ **1. Create an Issue on GitHub**
-*   Go to your repository → **Issues**.
-*   Click **New Issue**, write the title & description.
-*   Note the **issue number** (example: `#22`).
-
----
-
-## ✅ **2. Create a Branch on GitHub**
-*   Go to the **Code** tab.
-*   Make sure the base branch is **main**.
-*   Create a new branch named:
+## 폴더 구조
 
 ```
-issue-<issue-number>
+server/
+├── main.py          # FastAPI 앱 시작점, WebSocket, 헬스체크
+├── requirements.txt
+├── .env             # API 키 설정 (git 제외)
+├── core/
+│   ├── database.py  # DB 연결
+│   ├── models.py    # DB 테이블 모델
+│   ├── schemas.py   # 요청/응답 Pydantic 모델
+│   └── connections.py # WebSocket 연결 관리
+├── routers/
+│   └── analyze.py   # /analyze, /analyze/sentences, /data 엔드포인트
+└── templates/
+    └── index.html   # 대시보드
 ```
 
-**Example:**  
-```
-issue-22
-```
+## 실행 방법
 
----
-
-### ✔ Up to this point, all work is done in the GitHub web browser
-
----
-
-# 🖥 **Now Move to Visual Studio (Visual C++)**
-
-Visual Studio has built‑in Git tools, but you can also use the terminal.  
-Below is the workflow using the **terminal**, which is more reliable and consistent.
-
----
-
-## ✅ **3. Open Visual Studio and Check Your Current Branch**
-
-In Visual Studio:
-
-*   Open your solution (`.sln`)
-*   Open **View → Terminal** or **Developer PowerShell**
-
-Then run:
-
+**1. 패키지 설치**
 ```bash
-git status
+cd server
+pip install -r requirements.txt
 ```
 
----
-
-## ✅ **4. Switch to the Base Branch (main)**
-
+**2. 환경변수 설정**
 ```bash
-git checkout main
+cp .env.example .env
+# .env 파일에 GROQ_API_KEY 입력
 ```
 
----
-
-## ✅ **5. Fetch the Latest Branch Information**
-
+**3. 서버 실행**
 ```bash
-git fetch
+uvicorn main:app --reload
 ```
 
----
+**4. API 문서 확인**
 
-## ✅ **6. Pull the Latest Changes**
+`http://localhost:8000/docs`
 
-```bash
-git pull
+## API 명세
+
+### GET /health
+서버 상태 확인
+```json
+{ "status": "ok" }
 ```
 
----
+### POST /analyze/sentences
+문장별 독소조항 분석 (메인 엔드포인트)
 
-## ✅ **7. Switch to Your New Branch**
-
-```bash
-git checkout issue-<issue-number>
+**요청**
+```json
+{
+  "session_id": "abc123",
+  "filename": "contract.jpg",
+  "sentences": [
+    { "id": 1, "text": "근무시간은 주 6일 1일 12시간으로 한다." },
+    { "id": 2, "text": "연장근로수당은 지급하지 않는다." }
+  ]
+}
 ```
 
----
-
-## ✅ **8. Confirm You’re on the Correct Branch**
-
-```bash
-git status
+**응답**
+```json
+{
+  "status": "success",
+  "id": 1,
+  "llm_result": {
+    "results": [
+      { "id": 1, "state": 3 },
+      { "id": 2, "state": 3 }
+    ]
+  }
+}
 ```
 
----
+**state 값**
+| state | 의미 |
+|-------|------|
+| 0 | 정상 |
+| 1 | 저위험 |
+| 2 | 중위험 |
+| 3 | 고위험 (법 위반) |
 
-### ✔ Up to here: **Visual Studio 터미널**에서 하는 작업
+### GET /data
+분석 기록 전체 조회
 
----
-
-# 🧑‍💻 **9. Do Your C++ Development Work**
-Inside Visual Studio:
-
-*   Edit `.cpp`, `.h`, `.vcxproj` files
-*   Build the project
-*   Run and debug
-*   Test your changes
-
----
-
-## ✅ **10. Check Branch Before Committing**
-
-```bash
-git status
-```
-
----
-
-## ✅ **11. Stage Your Changes**
-
-```bash
-git add .
-```
-
----
-
-## ✅ **12. Commit Your Work**
-
-Commit message format:
-
-```
-<label>: <description> #<issue-number>
-```
-
-**Examples:**
-
-```bash
-git commit -m "fix: resolve buffer overflow in parser #22"
-git commit -m "feat: add logging module #22"
-```
-
----
-
-## ✅ **13. Push Your Branch to GitHub**
-
-```bash
-git push
-```
-
----
-
-### ✔ This is also done in the Visual Studio terminal
-
----
-
-# 🔀 **14. Create a Pull Request**
-On GitHub:
-
-*   Go to **Pull Requests**
-*   Click **New Pull Request**
-*   Make sure the **base branch** is `main`
-*   Submit the PR for review
-
----
-
-# 🎯 **Tips for Visual Studio + Git**
-*   Visual Studio’s Git UI is convenient, but the **terminal is more predictable**.
-*   Always update `main` before starting new work.
-*   Keep branches small and focused on one issue.
-*   Delete your branch after merging to keep the repo clean.
-
----
+### WebSocket /ws
+분석 완료 시 실시간 결과 수신

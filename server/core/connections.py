@@ -33,13 +33,15 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
 
     async def broadcast(self, message: dict):
-        """연결된 모든 브라우저에 JSON 메시지를 전송"""
+        """연결된 모든 브라우저에 JSON 메시지를 전송, 실패한 연결은 제거"""
+        disconnected = []
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
             except Exception:
-                # 특정 브라우저 전송 실패 시 무시하고 나머지에게 계속 전송
-                pass
+                disconnected.append(connection)
+        for connection in disconnected:
+            self.disconnect(connection)
 
 
 # 서버 전체에서 하나의 인스턴스만 사용 (싱글톤)

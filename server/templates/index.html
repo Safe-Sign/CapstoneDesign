@@ -244,6 +244,20 @@
     const empty = document.getElementById('empty-state');
     if (empty) empty.remove();
 
+    // 분석 결과 렌더링
+    let resultHtml = '';
+    if (data.llm_result && data.llm_result.results) {
+      const stateLabel = ['정상', '저위험', '중위험', '고위험'];
+      const stateColor = ['#4ade80', '#facc15', '#fb923c', '#f87171'];
+      resultHtml = data.llm_result.results.map(r =>
+        `<span style="margin-right:8px; padding:2px 8px; border-radius:999px;
+          background:${stateColor[r.state]}22; color:${stateColor[r.state]};
+          font-size:0.75rem;">
+          [${r.id}] ${stateLabel[r.state]}
+        </span>`
+      ).join('');
+    }
+
     // 카드 추가
     const container = document.getElementById('log-container');
     const card = document.createElement('div');
@@ -254,7 +268,7 @@
         <span class="meta">${data.timestamp}</span>
       </div>
       <div class="log-filename">파일: ${data.filename} &nbsp;·&nbsp; 세션: ${data.session_id}</div>
-      <div class="log-text">${escapeHtml(data.text)}</div>
+      ${resultHtml ? `<div style="margin-top:10px;">${resultHtml}</div>` : ''}
       <span class="status-tag">${data.status}</span>
     `;
     container.insertBefore(card, container.firstChild);
@@ -263,7 +277,8 @@
     // 통계 업데이트
     document.getElementById('total-count').textContent = data.id;
     document.getElementById('session-count').textContent = sessionCount;
-    document.getElementById('last-time').textContent = data.timestamp.split(' ')[1];
+    const ts = data.timestamp ? String(data.timestamp).split('T').pop().split('.')[0] : '-';
+    document.getElementById('last-time').textContent = ts;
   };
 
   function escapeHtml(text) {
