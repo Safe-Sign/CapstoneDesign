@@ -65,7 +65,7 @@ public class KoElectraTfliteEngine {
         int[][] tokenTypeIds = new int[1][MAX_SEQ_LEN];
         List<DocumentWord> retWordList = new ArrayList<>();
         for (int i = 0; i < MAX_SEQ_LEN; i++) {
-            int tokenId = inputTokensWordIdx[i][0]; // 모델에 넣을 실제 ID만 쏙 빼냄
+            int tokenId = inputTokensWordIdx[i][0]; // token id 전달
 
             inputIds[0][i] = tokenId;
             // PAD(0)가 아니면 실제 데이터이므로 1, PAD면 0

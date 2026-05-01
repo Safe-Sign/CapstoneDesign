@@ -103,7 +103,6 @@ public class koElectraTokenizer {
 
     public String getTokenizationLog(List<String> tokens, int[] inputIds) {
         StringBuilder sb = new StringBuilder();
-        sb.append("================ 토큰 변환 결과 ================\n");
 
         for (int i = 0; i < inputIds.length; i++) {
             if (i < tokens.size()) {
