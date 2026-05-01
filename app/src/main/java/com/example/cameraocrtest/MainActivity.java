@@ -21,6 +21,7 @@ import com.example.cameraocrtest.ImageMaskingManager.ImageMaskingManager;
 import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentSentence;
+import com.example.cameraocrtest.data.DocumentWord;
 import com.example.cameraocrtest.domain.detector.ProperNounDetector;
 import com.example.cameraocrtest.domain.model.ProperNounHit;
 import com.example.cameraocrtest.data.FieldInfo;
@@ -163,17 +164,8 @@ public class MainActivity extends AppCompatActivity {
                             }
 
 
-                                    // 3. 라인별 토큰화
-                                    List<String> tokens = tokenizer.getTokens(sentenceText);
-                                    int[] inputIds = tokenizer.tokenizeAndPad(sentenceText);
 
-                                    fullLogBuilder.append(String.format("[Block %d - Sentence %d] 분석\n",
-                                            block.GetBlockIndex(), sentence.getSentenceIndex()));
-                                    fullLogBuilder.append("원본문장 : " + sentence.getSentenceText() + "\n");
-                                    fullLogBuilder.append(tokenizer.getTokenizationLog(tokens, inputIds));
-                                    fullLogBuilder.append("\n\n");
-                                }
-                            }
+
 
                             // ProperNounCheck
                             properNounDetector.startDetection(documentData
