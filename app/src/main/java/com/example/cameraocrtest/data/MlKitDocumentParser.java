@@ -43,7 +43,7 @@ public class MlKitDocumentParser {
 
             //라인 생성 후 블록에 추가 하는 반복문
             for (Text.Line mlLine : mlBlock.getLines()) {
-                DocumentLine myLine = new DocumentLine(lineIndex);
+                DocumentLine myLine = new DocumentLine(blockIndex, lineIndex);
 
                 // 단어 생성 후 라인에 추가 하는 반복문
                 for (Text.Element mlElement : mlLine.getElements()) {
