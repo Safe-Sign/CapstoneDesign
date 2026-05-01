@@ -10,13 +10,17 @@ import java.util.List;
 // 문단 내 라인 번호 생성시 넣어주고
 // 다음 라인 전까지의 단어는 addWord를 통해 추가하는 형태
 public class DocumentLine {
+    private final int blockIndex;
     private final int lineIndex;
+    private final String lineUid;
 
     private final List<DocumentWord> words;
 
-    public DocumentLine(int lineIndex)
+    public DocumentLine(int blockIndex, int lineIndex)
     {
+        this.blockIndex = blockIndex;
         this.lineIndex = lineIndex;
+        this.lineUid = String.format("b%d_l%d", blockIndex, lineIndex);
         this.words = new ArrayList<>();
     }
 
@@ -29,6 +33,12 @@ public class DocumentLine {
     }
     public int GetLineIndex() {
         return lineIndex;
+    }
+    public int GetBlockIndex() {
+        return blockIndex;
+    }
+    public String GetLineUid() {
+        return lineUid;
     }
 
     public String GetLineText() {

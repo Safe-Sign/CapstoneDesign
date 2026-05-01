@@ -1,0 +1,14 @@
+{
+  "fields": [
+    { "key": "worker_name", "label": "PER", "sensitive": true, "description": "근로자 성명" },
+    { "key": "worker_birth", "label": "DAT", "sensitive": true, "description": "생년월일" },
+    { "key": "worker_address", "label": "LOC", "sensitive": true, "description": "주소" },
+    { "key": "worker_phone", "label": "PHONE", "sensitive": true, "description": "연락처" },
+    { "key": "worker_rrn", "label": "RRN", "sensitive": true, "description": "주민등록번호" },
+    { "key": "worker_email", "label": "EMAIL", "sensitive": true, "description": "이메일" },
+    { "key": "worker_account", "label": "ACCOUNT", "sensitive": true, "description": "계좌번호" },
+    { "key": "company_biz_no", "label": "BUSINESS_NO", "sensitive": true, "description": "사업자등록번호" },
+    { "key": "employee_id", "label": "EMPLOYEE_ID", "sensitive": true, "description": "사번/직원번호" },
+    { "key": "wage", "label": "MNY", "sensitive": true, "description": "급여/시급/연봉" }
+  ]
+}

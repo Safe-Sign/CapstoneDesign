@@ -13,7 +13,7 @@ public class DocumentWord {
     private final int blockIndex;
     private final int lineIndex;
     private final Rect boundingBox;
-    private final String wordText;
+    private String wordText;
 
     // -1 의 경우 일단 라인은 지정되었는데(라인은 생성시 지정이되기 때문) 문장구조화 과정을 거치지 않을때
     // 사실상 오류 검출용임
@@ -44,5 +44,10 @@ public class DocumentWord {
     public int GetBlockIndex() { return blockIndex; }
     public int GetLineIndex() { return lineIndex; }
     public String GetWordText() { return wordText; }
+
+    public void SetWordText(String replaceText)
+    {
+        wordText = replaceText;
+    }
     public Rect GetBoundingBox() { return boundingBox; }
 }

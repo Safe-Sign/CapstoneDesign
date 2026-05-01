@@ -43,7 +43,7 @@ public class MlKitDocumentParser {
 
             //라인 생성 후 블록에 추가 하는 반복문
             for (Text.Line mlLine : mlBlock.getLines()) {
-                DocumentLine myLine = new DocumentLine(lineIndex);
+                DocumentLine myLine = new DocumentLine(blockIndex, lineIndex);
 
                 // 단어 생성 후 라인에 추가 하는 반복문
                 for (Text.Element mlElement : mlLine.getElements()) {
@@ -74,7 +74,7 @@ public class MlKitDocumentParser {
 
                     //먼저 1. A. 가. 와 같이 조항 번호로 사용될수있는 한글자. 의 경우
                     //. 이 발견되더라도 문장의 끝으로 보지 않는다.
-                    boolean isListIndex = wordText.matches("^([0-9]{1,2}|[a-zA-Z]|[가-힣])\\.$");
+                    boolean isListIndex = wordText.matches("^([0-9]{1,2}|[a-zA-Z]|[ 가-힣])\\.$");
 
                     if(!isListIndex)
                     {
