@@ -269,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(List<ProperNounHit> result) throws JSONException {
                                             JSONObject request = createJsonRequest(documentData, result, MaskingMethod.PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING);
+                                            fullLogBuilder.append(request.toString());
                                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
                                             runOnUiThread(() -> {
                                                 tvOcrResult.setText(fullLogBuilder.toString());
