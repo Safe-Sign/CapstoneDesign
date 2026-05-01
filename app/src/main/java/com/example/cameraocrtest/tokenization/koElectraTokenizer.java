@@ -124,4 +124,50 @@ public class koElectraTokenizer {
         return sb.toString();
     }
 
+
+    public List<String> getTokens(String inputText)
+    {
+        List<String> tokens = fullTokenizer.tokenize(inputText);
+
+        if(tokens.size() > MAX_SEQ_LEN - 2)
+        {
+            tokens = tokens.subList(0 , MAX_SEQ_LEN -2);
+        }
+
+        List<String> resultTokens = new ArrayList<>();
+
+        /*
+        cls(classifications) -> 문장 시작 및 분류에 사용
+        sep(seperator) -> 문장의 끝에 표기 되어 , 문장을 분리시킴
+         */
+        resultTokens.add("[CLS]");
+        resultTokens.addAll(tokens);
+        resultTokens.add("[SEP]");
+
+        return resultTokens;
+    }
+
+    //  텍스트 처리 및 데이터 반환
+    public int[] tokenizeAndPad(String inputText) {
+        List<String> resultTokens = getTokens(inputText);
+        int[] inputIds = new int[MAX_SEQ_LEN];
+
+        for (int i = 0; i < MAX_SEQ_LEN; i++) {
+            if (i < resultTokens.size())
+            {
+                // Vocab에 없으면 UNK 처리
+                inputIds[i] = vocabMap.getOrDefault(resultTokens.get(i), UNK_ID);
+            } else {
+                // 남는 공간은 0 (PAD)으로 채움
+                inputIds[i] = PAD_ID;
+            }
+        }
+
+        return inputIds; // TFLite 모델 입력으로 넘겨줄 데이터
+    }
+
+
 }
+
+
+

@@ -16,8 +16,6 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.text.Normalizer;
 
-import kotlinx.coroutines.internal.ArrayQueue;
-
 public class ProperNounDetector {
 
     public interface OnDetectionCompleteListener {
