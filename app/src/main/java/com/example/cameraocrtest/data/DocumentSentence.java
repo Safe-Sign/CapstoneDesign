@@ -5,10 +5,12 @@ import java.util.List;
 
 public class DocumentSentence {
     private final int sentenceIndex;
+    private final int blockIndex;
     private final List<DocumentWord> words;
 
-    public DocumentSentence(int sentenceIndex) {
+    public DocumentSentence(int sentenceIndex,int blockIndex) {
         this.sentenceIndex = sentenceIndex;
+        this.blockIndex = blockIndex;
         this.words = new ArrayList<>();
     }
 

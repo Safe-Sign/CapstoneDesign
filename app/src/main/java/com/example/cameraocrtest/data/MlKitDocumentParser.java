@@ -58,7 +58,7 @@ public class MlKitDocumentParser {
                 lineIndex++;
             }
             documentData.AddBlock(myBlock);
-            DocumentSentence tempSentence = new DocumentSentence(sentenceIndex);
+            DocumentSentence tempSentence = new DocumentSentence(sentenceIndex,blockIndex );
             boolean senteneceEmpty = true;
 
             for(DocumentLine parsedLine : myBlock.GetLines())
@@ -93,7 +93,7 @@ public class MlKitDocumentParser {
                             myBlock.addSentence(tempSentence);
                             sentenceIndex++;
                             //다음 문장 위해 초기화
-                            tempSentence = new DocumentSentence(sentenceIndex);
+                            tempSentence = new DocumentSentence(sentenceIndex , blockIndex);
                             senteneceEmpty = true;
                         }
                     }

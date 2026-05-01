@@ -46,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     // Core Managers
     private CameraManager cameraManager;
     private OcrManager ocrManager;
+
+    KoElectraTfliteEngine koElectraEngine;
     private koElectraTokenizer tokenizer;
     private LineSensitiveInfoPipeline lineSensitiveInfoPipeline;
 
@@ -86,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnBackToCamera = findViewById(R.id.btnBackToCamera);
         ivMaskedResult = findViewById(R.id.ivMaskedResult);
+
     }
 
     private void initManagers() {
@@ -98,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         Set<String> sensitiveTags = FieldInfoJsonParser.buildSensitiveTagSet(fieldInfos);
         lineSensitiveInfoPipeline = new LineSensitiveInfoPipeline(new RegexNerEngine(tokenizer, sensitiveTags));
         imageMaskingManager = new ImageMaskingManager();
+
+        koElectraEngine = new KoElectraTfliteEngine(this, tokenizer);
     }
 
     private void setupListeners() {
@@ -130,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
                             fullLogBuilder.append("\n\n토큰화 데이터 로그\n");
                             fullLogBuilder.append("토큰화 데이터 로그");
 
+                            fullLogBuilder.append("\n[마스킹본]\n");
                             // 1. 블록 순회
                             for (DocumentBlock block : documentData.GetBlocks()) {
                                 int i = 0;
@@ -144,6 +150,18 @@ public class MainActivity extends AppCompatActivity {
                                     {
                                         imageMaskingManager.DocumentSentenceMasking(0 , 2 , sentence);
                                     }
+
+                                    List<DocumentWord> words = koElectraEngine.runInference(sentence);
+                                    for(DocumentWord word: words)
+                                    {
+                                        imageMaskingManager.DocumentWordMasking(0 , 1 , word);
+                                    }
+                                    fullLogBuilder.append("\n");
+                                    fullLogBuilder.append(sentence.getSentenceText());
+                                    fullLogBuilder.append("\n");
+                                }
+                            }
+
 
                                     // 3. 라인별 토큰화
                                     List<String> tokens = tokenizer.getTokens(sentenceText);
