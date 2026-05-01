@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         KOELECTRA_NER_MASKING,
         REGEX_NER_MASKIING,
         PROPER_NOUN_AND_KOELECTRA_MASKING,
-        // PROPER_NOUN_AND_REGEX_MAKSING,
+        KOELECTRA_AND_REGEX_MASKING, // PROPER_NOUN_AND_REGEX_MAKSING,
         PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING
     }
     private JSONObject createJsonRequest(DocumentData documentData, List<ProperNounHit> properNounHits, MaskingMethod flag) throws JSONException {
@@ -163,13 +163,14 @@ public class MainActivity extends AppCompatActivity {
                             int sentenceIdx = j.getSentenceIndex();
                             String result = j.getSentenceText();
                             List<SensitiveEntity> regexResult = regexNerEngine.inferSensitiveEntities(result);
-
+                            int diffSum = 0;
                             for (var k : regexResult) {
                                 if (k.getConfidence() > 0.75F) {
-                                    String pre = result.substring(0, k.getStart());
-                                    String post = result.substring(k.getEnd());
+                                    String pre = result.substring(0, k.getStart() - diffSum);
+                                    String post = result.substring(k.getEnd() - diffSum);
                                     result = pre + "[" + k.getLabel() + "]" + post;
                                 }
+                                diffSum += k.getEnd() - k.getStart() - k.getLabel().length() - 2;
                             }
 
                             // Append json request content
@@ -179,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                                     .put("text", result));
                         }
                     }
+                    jsonObj.put("sentences", sentenceField);
                     return jsonObj;
                 }
                 case PROPER_NOUN_AND_KOELECTRA_MASKING: {
@@ -212,6 +214,10 @@ public class MainActivity extends AppCompatActivity {
                     return jsonObj;
                 }
  */
+                case KOELECTRA_AND_REGEX_MASKING: {
+                    flag = MaskingMethod.KOELECTRA_NER_MASKING;
+                    shouldRun -= 2;
+                }
                 case PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING: {
                     flag = MaskingMethod.PROPER_NOUN_AND_KOELECTRA_MASKING;
                     shouldRun -= 2;
@@ -268,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                                     , new ProperNounDetector.OnDetectionCompleteListener() {
                                         @Override
                                         public void onComplete(List<ProperNounHit> result) throws JSONException {
-                                            JSONObject request = createJsonRequest(documentData, result, MaskingMethod.PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING);
+                                            JSONObject request = createJsonRequest(documentData, result, MaskingMethod.KOELECTRA_AND_REGEX_MASKING);
                                             fullLogBuilder.append(request.toString());
                                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
                                             runOnUiThread(() -> {
@@ -278,19 +284,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
 
-                            SensitiveInferenceResult sensitiveResult = lineSensitiveInfoPipeline.infer(documentData);
-                            fullLogBuilder.append("민감정보 추론 결과\n");
-                            fullLogBuilder.append(formatSensitiveResult(sensitiveResult));
 
-                            Bitmap outImage = imageMaskingManager.GetMaskingImage(0);
-                            // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
-                            runOnUiThread(() -> {
-                                if (outImage != null) {
-                                    ivMaskedResult.setImageBitmap(outImage);
-                                }
-                                tvOcrResult.setText(fullLogBuilder.toString());
-                                updateUIState(UIState.RESULT);
-                            });
                         }
 
                         @Override
