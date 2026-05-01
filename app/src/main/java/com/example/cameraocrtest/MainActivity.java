@@ -28,15 +28,12 @@ import com.example.cameraocrtest.data.SensitiveEntity;
 import com.example.cameraocrtest.data.SensitiveInferenceResult;
 import com.example.cameraocrtest.data.SensitiveLineResult;
 import com.example.cameraocrtest.inference.LineSensitiveInfoPipeline;
-import com.example.cameraocrtest.ner.KoElectraNerEngine;
+import com.example.cameraocrtest.ner.RegexNerEngine;
 import com.example.cameraocrtest.parser.FieldInfoJsonParser;
-import com.example.cameraocrtest.data.DocumentWord;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
 
 import java.util.List;
 import java.util.Set;
-
-import kotlin._Assertions;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tvHeaderStatus;
@@ -99,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         properNounDetector = new ProperNounDetector();
         List<FieldInfo> fieldInfos = FieldInfoJsonParser.loadFromAsset(this, "field_info.json");
         Set<String> sensitiveTags = FieldInfoJsonParser.buildSensitiveTagSet(fieldInfos);
-        lineSensitiveInfoPipeline = new LineSensitiveInfoPipeline(new KoElectraNerEngine(tokenizer, sensitiveTags));
+        lineSensitiveInfoPipeline = new LineSensitiveInfoPipeline(new RegexNerEngine(tokenizer, sensitiveTags));
         imageMaskingManager = new ImageMaskingManager();
     }
 

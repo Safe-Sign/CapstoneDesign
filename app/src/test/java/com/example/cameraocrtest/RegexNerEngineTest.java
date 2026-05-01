@@ -1,7 +1,7 @@
 package com.example.cameraocrtest;
 
 import com.example.cameraocrtest.data.SensitiveEntity;
-import com.example.cameraocrtest.ner.KoElectraNerEngine;
+import com.example.cameraocrtest.ner.RegexNerEngine;
 
 import org.junit.Test;
 
@@ -11,10 +11,10 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class KoElectraNerEngineTest {
+public class RegexNerEngineTest {
     @Test
     public void inferSensitiveEntities_detectsEmailAndPhone() {
-        KoElectraNerEngine engine = new KoElectraNerEngine(text -> Arrays.asList(
+        RegexNerEngine engine = new RegexNerEngine(text -> Arrays.asList(
                 "[CLS]", "연락", "##처", "는", "hong", "@", "example", ".", "com", "과", "010", "-", "1234", "-", "5678", "[SEP]"
         ));
 

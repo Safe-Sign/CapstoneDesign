@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KoElectraNerEngine {
+public class RegexNerEngine {
     private static final Set<String> DEFAULT_SENSITIVE_TAGS = new HashSet<>();
 
     static {
@@ -81,14 +81,14 @@ public class KoElectraNerEngine {
     private final List<KeywordValueRule> keywordValueRules;
     private final Set<String> sensitiveTags;
 
-    public KoElectraNerEngine(koElectraTokenizer tokenizer) {
+    public RegexNerEngine(koElectraTokenizer tokenizer) {
         this.tokenProvider = tokenizer::getTokens;
         this.fallbackRules = buildFallbackRules();
         this.keywordValueRules = buildKeywordValueRules();
         this.sensitiveTags = new HashSet<>(DEFAULT_SENSITIVE_TAGS);
     }
 
-    public KoElectraNerEngine(koElectraTokenizer tokenizer, Set<String> sensitiveTags) {
+    public RegexNerEngine(koElectraTokenizer tokenizer, Set<String> sensitiveTags) {
         this.tokenProvider = tokenizer::getTokens;
         this.fallbackRules = buildFallbackRules();
         this.keywordValueRules = buildKeywordValueRules();
@@ -97,7 +97,7 @@ public class KoElectraNerEngine {
                 : new HashSet<>(sensitiveTags);
     }
 
-    public KoElectraNerEngine(TokenProvider tokenProvider) {
+    public RegexNerEngine(TokenProvider tokenProvider) {
         this.tokenProvider = tokenProvider;
         this.fallbackRules = buildFallbackRules();
         this.keywordValueRules = buildKeywordValueRules();

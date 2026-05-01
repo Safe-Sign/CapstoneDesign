@@ -6,15 +6,15 @@ import com.example.cameraocrtest.data.DocumentLine;
 import com.example.cameraocrtest.data.SensitiveEntity;
 import com.example.cameraocrtest.data.SensitiveInferenceResult;
 import com.example.cameraocrtest.data.SensitiveLineResult;
-import com.example.cameraocrtest.ner.KoElectraNerEngine;
+import com.example.cameraocrtest.ner.RegexNerEngine;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LineSensitiveInfoPipeline {
-    private final KoElectraNerEngine nerEngine;
+    private final RegexNerEngine nerEngine;
 
-    public LineSensitiveInfoPipeline(KoElectraNerEngine nerEngine) {
+    public LineSensitiveInfoPipeline(RegexNerEngine nerEngine) {
         this.nerEngine = nerEngine;
     }
 
