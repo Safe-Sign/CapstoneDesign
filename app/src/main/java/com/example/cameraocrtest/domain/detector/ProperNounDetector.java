@@ -8,6 +8,8 @@ import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.example.cameraocrtest.data.Translator;
 import com.example.cameraocrtest.data.Transliterator;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -19,7 +21,7 @@ import java.text.Normalizer;
 public class ProperNounDetector {
 
     public interface OnDetectionCompleteListener {
-        void onComplete(List<ProperNounHit> result);
+        void onComplete(List<ProperNounHit> result) throws JSONException;
     }
     private static class DetectionRequest {
         public final Task<String> translated;
@@ -82,7 +84,11 @@ public class ProperNounDetector {
 
                 if (taskDone()) {
                     matchedList.sort(Comparator.comparingInt(p -> p.sequenceNumber));
-                    listener.onComplete(matchedList);
+                    try {
+                        listener.onComplete(matchedList);
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }
