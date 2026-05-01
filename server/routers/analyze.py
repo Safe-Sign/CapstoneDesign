@@ -103,20 +103,22 @@ SYSTEM_PROMPT = """당신은 한국 노동법 전문 AI입니다. 사용자가 �
 - 판단이 불가능한 심각한 오인식은 state 1로 처리합니다
 
 ## 출력 JSON 형식
-입력으로 "[id] 문장텍스트" 형태의 문장 목록이 주어집니다.
-각 문장의 id를 그대로 사용하여 아래 형식으로 출력합니다.
+입력으로 "[block_id-sentence_id] 문장텍스트" 형태의 문장 목록이 주어집니다.
+각 문장의 block_id와 sentence_id를 그대로 사용하여 아래 형식으로 출력합니다.
 
 {
   "results": [
     {
-      "id": 1,
+      "block_id": 1,
+      "sentence_id": 1,
       "state": 0,
       "reason": "정상 조항입니다.",
       "law": "",
       "action": "이상 없음"
     },
     {
-      "id": 2,
+      "block_id": 2,
+      "sentence_id": 1,
       "state": 3,
       "reason": "연장근로수당 미지급 가능성",
       "law": "근로기준법 제56조",
@@ -156,7 +158,7 @@ def run_llm(text: str) -> dict:
         if "results" not in result:
             raise ValueError("results 필드 없음")
         for item in result["results"]:
-            for field in ("id", "state", "reason", "law", "action"):
+            for field in ("block_id", "sentence_id", "state", "reason", "law", "action"):
                 if field not in item:
                     raise ValueError(f"{field} 필드 없음: {item}")
             if item["state"] not in [0, 1, 2, 3]:
@@ -257,7 +259,7 @@ async def analyze_sentences(req: SentenceAnalyzeRequest, db: Session = Depends(g
 
     logger.info("문장 분석 요청 - session: %s, 문장 수: %d", req.session_id, len(req.sentences))
 
-    combined_text = "\n".join(f"[{s.id}] {s.text}" for s in req.sentences)
+    combined_text = "\n".join(f"[{s.block_id}-{s.sentence_id}] {s.text}" for s in req.sentences)
     masked_text = mask_pii(combined_text)
     llm_result = run_llm(masked_text)
 

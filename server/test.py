@@ -13,9 +13,9 @@ def test_analyze_sentences():
         "session_id": "test",
         "filename": "test.jpg",
         "sentences": [
-            {"id": 1, "text": "근무시간은 주 6일 1일 12시간으로 한다."},
-            {"id": 2, "text": "연장근로수당은 지급하지 않는다."},
-            {"id": 3, "text": "근로계약 기간은 1년으로 한다."}
+            {"block_id": 1, "sentence_id": 1, "text": "근무시간은 주 6일 1일 12시간으로 한다."},
+            {"block_id": 1, "sentence_id": 2, "text": "연장근로수당은 지급하지 않는다."},
+            {"block_id": 2, "sentence_id": 1, "text": "근로계약 기간은 1년으로 한다."}
         ]
     })
     assert r.status_code == 200
@@ -23,9 +23,9 @@ def test_analyze_sentences():
     assert body["status"] == "success"
     results = body["llm_result"]["results"]
     assert len(results) == 3
-    ids = [x["id"] for x in results]
-    assert sorted(ids) == [1, 2, 3]
     for x in results:
+        assert "block_id" in x and isinstance(x["block_id"], int)
+        assert "sentence_id" in x and isinstance(x["sentence_id"], int)
         assert x["state"] in [0, 1, 2, 3]
         assert "reason" in x and isinstance(x["reason"], str)
         assert "law" in x and isinstance(x["law"], str)

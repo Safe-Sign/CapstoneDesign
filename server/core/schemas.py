@@ -6,7 +6,7 @@
 # ─────────────────────────────────────────────────────────────
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 
 
 class OCRRequest(BaseModel):
@@ -29,7 +29,8 @@ class OCRRequest(BaseModel):
 
 
 class Sentence(BaseModel):
-    id: int
+    block_id: int
+    sentence_id: int
     text: str = Field(..., min_length=1, max_length=1000)
 
 
@@ -42,8 +43,9 @@ class SentenceAnalyzeRequest(BaseModel):
         "session_id": "abc123",
         "filename": "contract.jpg",
         "sentences": [
-            {"id": 1, "text": "근로 기간은 1년으로 한다."},
-            {"id": 2, "text": "연장근로수당은 지급하지 않는다."}
+            {"block_id": 1, "sentence_id": 1, "text": "근로 기간은 1년으로 한다."},
+            {"block_id": 1, "sentence_id": 2, "text": "계약 갱신은 협의에 의한다."},
+            {"block_id": 2, "sentence_id": 1, "text": "연장근로수당은 지급하지 않는다."}
         ]
     }
     """
