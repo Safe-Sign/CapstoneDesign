@@ -1,13 +1,18 @@
 package com.example.cameraocrtest;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,10 +38,14 @@ import com.example.cameraocrtest.inference.LineSensitiveInfoPipeline;
 import com.example.cameraocrtest.ner.RegexNerEngine;
 import com.example.cameraocrtest.parser.FieldInfoJsonParser;
 import com.example.cameraocrtest.tokenization.koElectraTokenizer;
+import com.example.cameraocrtest.data.ResponseData;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 import org.w3c.dom.Document;
 
 import java.util.List;
@@ -410,4 +419,202 @@ public class MainActivity extends AppCompatActivity {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
     }
+
+    //현재 05.02일자 테스트 기준으로 pageIndex 는 0으로 고정(즉 page 1장 짜리에 대해서만 고려함)
+    @SuppressLint("ClickableViewAccessibility")
+    private void endUserInterface(List<ResponseData> responseDataList , DocumentData documentData, int pageIndex , String requestJsonString)
+    {
+
+         List<DocumentSentence> dangerSentenceList = new ArrayList<>();
+                 List<ResponseData> dangerResponseDataList = new ArrayList<>();
+
+        for(ResponseData data : responseDataList)
+        {
+            if(data.state > 0)
+            {
+                DocumentSentence sentence = documentData.GetBlocks().get(data.blockIdx).getSentences().get(data.sentenceIdx);
+
+                dangerSentenceList.add(sentence);
+                dangerResponseDataList.add(data);
+
+                imageMaskingManager.DocumentSentenceMasking(pageIndex,data.state,sentence);
+
+
+
+            }
+
+        }
+
+
+        Bitmap outImage = imageMaskingManager.GetMaskingImage(pageIndex);
+        runOnUiThread(() -> {
+            if (outImage != null) {
+                ivMaskedResult.setImageBitmap(outImage);
+            }
+            updateUIState(UIState.RESULT);
+
+            ivMaskedResult.setOnTouchListener( (v, event) -> {
+                // 손가락이 닿는 순간(ACTION_DOWN)만 처리
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                    // 화면 터치 좌표를 실제 비트맵 이미지 좌표로 역산
+                    float[] touchPoint = new float[] {event.getX(), event.getY()};
+                    Matrix inverseMatrix = new Matrix();
+                    ivMaskedResult.getImageMatrix().invert(inverseMatrix);
+                    inverseMatrix.mapPoints(touchPoint);
+
+                    boolean isTouchedDangerArea = false;
+
+                    // 캡처해둔 위험 조항(Sentence) 리스트를 순회
+                    for (int i = 0; i < dangerSentenceList.size(); i++) {
+                        DocumentSentence sentence = dangerSentenceList.get(i);
+                        boolean sentenceTouched = false;
+
+                        // 해당 문장의 '단어(Word)' 바운딩 박스를 하나씩 검사
+                        // (※ 사용하는 OCR 라이브러리에 따라 getWords() 메서드명은 다를 수 있습니다)
+                        if (sentence.getWords() != null) {
+                            for (DocumentWord word : sentence.getWords()) {
+                                Rect wordBox = word.GetBoundingBox();
+
+                                // 단어 사각형 안에 터치 좌표가 포함되면 즉시 충돌 판정
+                                if (wordBox != null && wordBox.contains((int) touchPoint[0], (int) touchPoint[1])) {
+                                    sentenceTouched = true;
+                                    break; // 단어 탐색 루프 탈출
+                                }
+                            }
+                        }
+
+                        // 문장이 터치된 것으로 확인되면 정보 띄우기
+                        if (sentenceTouched) {
+                            ResponseData matchedData = dangerResponseDataList.get(i);
+                            // 화면 하단에 서버 정보 표기
+                            showDetailInfoToBottom(matchedData.reason, matchedData.law, matchedData.action);
+
+                            isTouchedDangerArea = true;
+                            break; // 다른 문장은 더 찾을 필요 없으므로 전체 루프 탈출
+                        }
+                    }
+
+                    // 위험 조항이 아닌 여백을 터치했다면 띄워둔 정보창 숨기기
+                    if (!isTouchedDangerArea) {
+                        hideDetailInfoFromBottom();
+                    }
+                }
+                return true; // 이벤트를 소비함 (다른 터치 이벤트로 전파 방지)
+            });
+
+
+            Button logButton = findViewById(R.id.btn_log_view);
+
+            if (logButton != null) {
+                // 응답이 성공적으로 와서 마스킹이 끝났으므로 버튼을 활성화/노출합니다.
+                logButton.setVisibility(View.VISIBLE);
+
+                // 버튼 클릭 시 다이얼로그를 띄우는 이벤트를 달아줍니다.
+                logButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showLogDialog(requestJsonString);
+                    }
+                });
+            }
+        });
+
+
+
+
+    }
+    private BottomSheetDialog currentBottomSheet;
+    private void showDetailInfoToBottom(String reason, String law, String action) {
+        // 이미 띄워진 바텀 시트가 있다면 닫기
+        if (currentBottomSheet != null && currentBottomSheet.isShowing()) {
+            currentBottomSheet.dismiss();
+        }
+
+        currentBottomSheet = new BottomSheetDialog(this);
+
+        // (이전에 로그 뷰 띄울 때처럼 코드로 동적 뷰 생성, 혹은 XML을 inflate 해도 됨)
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50);
+
+        TextView tvInfo = new TextView(this);
+        tvInfo.setText("사유: " + reason + "\n\n법령: " + law + "\n\n조치: " + action);
+        tvInfo.setTextSize(16f);
+
+        layout.addView(tvInfo);
+
+        currentBottomSheet.setContentView(layout);
+        currentBottomSheet.show();
+    }
+
+    private void hideDetailInfoFromBottom() {
+        // 바텀 시트는 사용자가 바깥을 누르면 알아서 닫히지만,
+        // 여백 터치 시 강제로 닫고 싶다면 아래 코드 사용
+        if (currentBottomSheet != null && currentBottomSheet.isShowing()) {
+            currentBottomSheet.dismiss();
+        }
+    }
+
+    // JSON 텍스트를 스크롤 가능한 다이얼로그로 띄워주는 메서드
+    private void showLogDialog(String jsonLog) {
+        // 1. 다이얼로그에 들어갈 스크롤 뷰와 텍스트 뷰 동적 생성
+        ScrollView scrollView = new ScrollView(this); // Fragment라면 requireContext() 사용
+        TextView textView = new TextView(this);
+
+        // 2. 텍스트 뷰 세팅 (여백, 글자크기, 내용)
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        textView.setPadding(padding, padding, padding, padding);
+        textView.setTextSize(14f);
+        textView.setText(jsonLog);
+
+        scrollView.addView(textView);
+
+        // 3. AlertDialog 생성 및 표시
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("서버 전송 로그 (Request JSON)")
+                .setView(scrollView) // 스크롤 뷰 장착
+                .setPositiveButton("닫기", null)
+                .show();
+    }
+
+
+    // 서버에서 받은 JSON 문자열을 List<ResponseData>로 변환하는 함수
+    private List<ResponseData> parseServerResponse(String jsonString) {
+        List<ResponseData> responseDataList = new ArrayList<>();
+
+        try {
+            // 1. 최상위 JSON 객체 생성
+            JSONObject rootObject = new JSONObject(jsonString);
+
+            // 2. "results" 배열 꺼내기
+            JSONArray resultsArray = rootObject.getJSONArray("results");
+
+            // 3. 배열을 순회하며 ResponseData 객체로 만들기
+            for (int i = 0; i < resultsArray.length(); i++) {
+                JSONObject item = resultsArray.getJSONObject(i);
+
+
+                int blockIdx = item.getInt("block_id");
+                int sentenceIdx = item.getInt("sentence_id");
+
+                // 나머지 데이터는 그대로 꺼냅니다.
+                int state = item.getInt("state");
+                String reason = item.getString("reason");
+                String law = item.getString("law");
+                String action = item.getString("action");
+
+                // 객체를 생성하여 리스트에 추가
+                ResponseData data = new ResponseData(blockIdx, sentenceIdx, state, reason, law, action);
+                responseDataList.add(data);
+            }
+
+        } catch (JSONException e) {
+            // JSON 형식이 잘못되었거나 키 값이 없을 때의 예외 처리
+            e.printStackTrace();
+        }
+
+        return responseDataList;
+    }
+
 }
