@@ -73,4 +73,5 @@ dependencies {
     implementation("com.google.guava:guava:33.1.0-android")
 
     implementation("com.google.mlkit:translate:17.0.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

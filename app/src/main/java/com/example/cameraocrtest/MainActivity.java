@@ -28,6 +28,7 @@ import com.example.cameraocrtest.data.DocumentData;
 import com.example.cameraocrtest.data.DocumentBlock;
 import com.example.cameraocrtest.data.DocumentSentence;
 import com.example.cameraocrtest.data.DocumentWord;
+import com.example.cameraocrtest.data.NetworkClient;
 import com.example.cameraocrtest.domain.detector.ProperNounDetector;
 import com.example.cameraocrtest.domain.model.ProperNounHit;
 import com.example.cameraocrtest.data.FieldInfo;
@@ -287,6 +288,31 @@ public class MainActivity extends AppCompatActivity {
                                             JSONObject request = createJsonRequest(documentData, result, MaskingMethod.KOELECTRA_AND_REGEX_MASKING);
                                             fullLogBuilder.append(request.toString());
                                             temp.append(request.toString());
+
+                                            String url = "https://YOUR_SERVER_HOST/api/analyze"; // TODO: 서버 주소로 변경
+                                            String json = request.toString();
+
+                                            NetworkClient networkClient = new NetworkClient();
+                                            networkClient.postJson(url, json, new NetworkClient.ApiCallback() {
+                                                @Override
+                                                public void onSuccess(String body) {
+                                                    // ✅ 서버 응답 JSON 파싱 후 UI 업데이트
+                                                    List<ResponseData> responseDataList = parseServerResponse(body);
+
+                                                    runOnUiThread(() -> {
+                                                        endUserInterface(responseDataList, documentData, 0, json);
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onFailure(Exception e) {
+                                                    runOnUiThread(() -> {
+                                                        tvOcrResult.setText("서버 요청 실패: " + e.getMessage());
+                                                        updateUIState(UIState.RESULT);
+                                                    });
+                                                }
+                                            });
+
                                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
 //                                            runOnUiThread(() -> {
 //                                                tvOcrResult.setText(fullLogBuilder.toString());
