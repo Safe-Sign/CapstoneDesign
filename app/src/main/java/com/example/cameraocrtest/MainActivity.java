@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,8 +46,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import org.w3c.dom.Document;
+
 import java.util.List;
 import java.util.Set;
+
+import kotlin.text.Regex;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tvHeaderStatus;
@@ -70,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
 
     // ProperNounDetection
     private ProperNounDetector properNounDetector;
+
+    private RegexNerEngine regexNerEngine;
 
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -116,6 +123,132 @@ public class MainActivity extends AppCompatActivity {
         imageMaskingManager = new ImageMaskingManager();
 
         koElectraEngine = new KoElectraTfliteEngine(this, tokenizer);
+        regexNerEngine = new RegexNerEngine(tokenizer);
+
+    }
+
+    private enum MaskingMethod {
+        PROPER_NOUN_MASKING,
+        KOELECTRA_NER_MASKING,
+        REGEX_NER_MASKIING,
+        PROPER_NOUN_AND_KOELECTRA_MASKING,
+        KOELECTRA_AND_REGEX_MASKING, // PROPER_NOUN_AND_REGEX_MAKSING,
+        PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING
+    }
+    private JSONObject createJsonRequest(DocumentData documentData, List<ProperNounHit> properNounHits, MaskingMethod flag) throws JSONException {
+        JSONObject jsonObj = new JSONObject();
+        JSONArray sentenceField = new JSONArray();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            jsonObj.append("session_id", "test02");
+            jsonObj.append("filename", "test_contract.jpg");
+        }
+
+
+        for (int shouldRun = 0; shouldRun < 1; ++shouldRun) {
+            switch (flag) {
+                case PROPER_NOUN_MASKING: {
+                    for (var i : properNounHits) {
+                        i.sourceInfo.SetWordText("*".repeat(i.origin.length()));
+                    }
+                    break;
+                }
+                case KOELECTRA_NER_MASKING: {
+                    for (var i : documentData.GetBlocks()) {
+                        for (var j : i.getSentences()) {
+                            String text = j.getSentenceText().trim();
+                            if (text.isEmpty()) {
+                                continue;
+                            }
+                            koElectraEngine.runInference(j);
+                        }
+                    }
+                    break;
+                }
+                case REGEX_NER_MASKIING: {
+                    for (var i : documentData.GetBlocks()) {
+                        int blockIdx = i.GetBlockIndex();
+                        for (var j : i.getSentences()) {
+                            int sentenceIdx = j.getSentenceIndex();
+                            String result = j.getSentenceText();
+                            List<SensitiveEntity> regexResult = regexNerEngine.inferSensitiveEntities(result);
+                            int diffSum = 0;
+                            for (var k : regexResult) {
+                                if (k.getConfidence() > 0.75F) {
+                                    String pre = result.substring(0, k.getStart() - diffSum);
+                                    String post = result.substring(k.getEnd() - diffSum);
+                                    result = pre + "[" + k.getLabel() + "]" + post;
+                                }
+                                diffSum += k.getEnd() - k.getStart() - k.getLabel().length() - 2;
+                            }
+
+                            // Append json request content
+                            sentenceField.put(new JSONObject()
+                                    .put("block_id", blockIdx)
+                                    .put("sentence_id", sentenceIdx)
+                                    .put("text", result));
+                        }
+                    }
+                    jsonObj.put("sentences", sentenceField);
+                    return jsonObj;
+                }
+                case PROPER_NOUN_AND_KOELECTRA_MASKING: {
+                    int blockIdxBack = -1;
+                    int sentenceIdxBack = -1;
+                    for (var i : properNounHits) {
+                        int blockIdx = i.sourceInfo.GetBlockIndex();
+                        int sentenceIdx = i.sourceInfo.GetSentenceIndex();
+                        DocumentSentence sentence = documentData.GetBlocks().get(blockIdx).getSentences().get(sentenceIdx);
+
+                        if (blockIdxBack == blockIdx && sentenceIdxBack == sentenceIdx) {
+                            continue;
+                        }
+                        blockIdxBack = blockIdx;
+                        sentenceIdxBack = sentenceIdx;
+
+                        String sentenceText = sentence.getSentenceText().trim();
+
+                        if (sentenceText.isEmpty()) {
+                            continue;
+                        }
+
+                        koElectraEngine.runInference(sentence);
+                    }
+                    flag = MaskingMethod.REGEX_NER_MASKIING;
+                    break;
+                }
+/*
+                case PROPER_NOUN_AND_REGEX_MAKSING: {
+
+                    return jsonObj;
+                }
+ */
+                case KOELECTRA_AND_REGEX_MASKING: {
+                    flag = MaskingMethod.KOELECTRA_NER_MASKING;
+                    shouldRun -= 2;
+                }
+                case PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING: {
+                    flag = MaskingMethod.PROPER_NOUN_AND_KOELECTRA_MASKING;
+                    shouldRun -= 2;
+                }
+                    break;
+                default:
+                    break;
+            }
+        }
+        for (var i : documentData.GetBlocks()) {
+            int blockIdx = i.GetBlockIndex();
+            for (var j : i.getSentences()) {
+                int sentenceIdx = j.getSentenceIndex();
+                sentenceField.put(new JSONObject()
+                        .put("block_id", blockIdx)
+                        .put("sentence_id", sentenceIdx)
+                        .put("text", j.getSentenceText()));
+            }
+        }
+        // Write JSON request content
+        jsonObj.put("sentences", sentenceField);
+        return jsonObj;
     }
 
     private void setupListeners() {
@@ -145,109 +278,20 @@ public class MainActivity extends AppCompatActivity {
                             fullLogBuilder.append("원본\n");
                             fullLogBuilder.append(documentData.GetFullText());
 
-                            fullLogBuilder.append("\n\n토큰화 데이터 로그\n");
-                            fullLogBuilder.append("토큰화 데이터 로그");
-
-                            fullLogBuilder.append("\n[마스킹본]\n");
-                            // 1. 블록 순회
-                            for (DocumentBlock block : documentData.GetBlocks()) {
-
-                                // 2. 블록 내부 라인 순회
-                                for (DocumentSentence sentence : block.getSentences()) {
-                                    String sentenceText = sentence.getSentenceText().trim();
-
-                                    if (sentenceText.isEmpty()) continue;
-
-
-
-                                    fullLogBuilder.append("\n");
-                                    fullLogBuilder.append(sentence.getSentenceText());
-                                    fullLogBuilder.append("\n");
-                                }
-                            }
-
-
-
-                            String requestJsonString = "{\n" +
-                                    "  \"session_id\": \"test_session_101\",\n" +
-                                    "  \"filename\": \"contract_test_01.jpg\",\n" +
-                                    "  \"sentences\": [\n" +
-                                    "    { \"id\": 1, \"text\": \"사업주와 근로자는 신의성실의 원칙에 따라 본 근로계약을 체결한다.\" },\n" +
-                                    "    { \"id\": 2, \"text\": \"근로 시작일은 2026년 6월 1일로 정하며, 기본급은 월 4,850,000원으로 한다.\" },\n" +
-                                    "    { \"id\": 3, \"text\": \"회사는 근로계약의 이행을 위하여 필요한 최소한의 개인정보를 수집할 수 있다.\" },\n" +
-                                    "    { \"id\": 4, \"text\": \"다만, 회사는 근로자의 건강 상태(고혈압, 알레르기 등)를 수집하며 근로자는 이에 동의한다.\" },\n" +
-                                    "    { \"id\": 5, \"text\": \"회사는 특정 공휴일 근무 배정 시 참고하기 위해 근로자의 종교 정보를 수집한다.\" },\n" +
-                                    "    { \"id\": 6, \"text\": \"또한, 노무 관리의 편의를 위해 근로자의 사회적 신분(노조 활동 이력)을 수집한다.\" },\n" +
-                                    "    { \"id\": 7, \"text\": \"추가로, 비상시 연락 및 신원 확인을 위하여 근로자의 병역 사항을 수집한다.\" }\n" +
-                                    "  ]\n" +
-                                    "}";
-
-
-                            String dummyServerResponseJson = "{\n" +
-                                    "  \"results\": [\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 0,\n" +
-                                    "      \"sentence_id\": 0,\n" +
-                                    "      \"state\": 0,\n" +
-                                    "      \"reason\": \"정상 조항입니다.\",\n" +
-                                    "      \"law\": \"\",\n" +
-                                    "      \"action\": \"이상 없음\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 0,\n" +
-                                    "      \"sentence_id\": 1,\n" +
-                                    "      \"state\": 0,\n" +
-                                    "      \"reason\": \"정상 조항입니다.\",\n" +
-                                    "      \"law\": \"\",\n" +
-                                    "      \"action\": \"이상 없음\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 1,\n" +
-                                    "      \"sentence_id\": 0,\n" +
-                                    "      \"state\": 0,\n" +
-                                    "      \"reason\": \"정상 조항입니다.\",\n" +
-                                    "      \"law\": \"\",\n" +
-                                    "      \"action\": \"이상 없음\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 1,\n" +
-                                    "      \"sentence_id\": 1,\n" +
-                                    "      \"state\": 2,\n" +
-                                    "      \"reason\": \"건강 상태 정보 수집\",\n" +
-                                    "      \"law\": \"개인정보보호법 제20조\",\n" +
-                                    "      \"action\": \"수정 권장\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 2,\n" +
-                                    "      \"sentence_id\": 0,\n" +
-                                    "      \"state\": 2,\n" +
-                                    "      \"reason\": \"종교 정보 수집\",\n" +
-                                    "      \"law\": \"개인정보보호법 제21조\",\n" +
-                                    "      \"action\": \"수정 권장\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 2,\n" +
-                                    "      \"sentence_id\": 1,\n" +
-                                    "      \"state\": 3,\n" +
-                                    "      \"reason\": \"사회적 신분(노조 활동 이력) 정보 수집\",\n" +
-                                    "      \"law\": \"개인정보보호법 제22조\",\n" +
-                                    "      \"action\": \"수정 요청\"\n" +
-                                    "    },\n" +
-                                    "    {\n" +
-                                    "      \"block_id\": 2,\n" +
-                                    "      \"sentence_id\": 2,\n" +
-                                    "      \"state\": 2,\n" +
-                                    "      \"reason\": \"병역 사항 수집\",\n" +
-                                    "      \"law\": \"개인정보보호법 제23조\",\n" +
-                                    "      \"action\": \"수정 권장\"\n" +
-                                    "    }\n" +
-                                    "  ]\n" +
-                                    "}";
-                            List<ResponseData> responseDataList = parseServerResponse(dummyServerResponseJson);
-
-                            endUserInterface(responseDataList, documentData, 0, requestJsonString);
-
-
+                            // ProperNounCheck
+                            properNounDetector.startDetection(documentData
+                                    , new ProperNounDetector.OnDetectionCompleteListener() {
+                                        @Override
+                                        public void onComplete(List<ProperNounHit> result) throws JSONException {
+                                            JSONObject request = createJsonRequest(documentData, result, MaskingMethod.KOELECTRA_AND_REGEX_MASKING);
+                                            fullLogBuilder.append(request.toString());
+                                            // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
+                                            runOnUiThread(() -> {
+                                                tvOcrResult.setText(fullLogBuilder.toString());
+                                                updateUIState(UIState.RESULT);
+                                            });
+                                        }
+                                    });
 
 
                         }

@@ -43,6 +43,7 @@ public class DocumentWord {
     // 외부에서 데이터를 읽기 위한 Getter 메서드들
     public int GetBlockIndex() { return blockIndex; }
     public int GetLineIndex() { return lineIndex; }
+    public int GetSentenceIndex() { return sentenceIndex; }
     public String GetWordText() { return wordText; }
 
     public void SetWordText(String replaceText)
