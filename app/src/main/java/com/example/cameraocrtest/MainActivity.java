@@ -80,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
     private RegexNerEngine regexNerEngine;
 
+    private String OrginTextBuffer;
+
+    private LinearLayout legendLayout;
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -95,14 +98,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         initViews();
         initManagers();
         setupListeners();
+
+
 
         checkCameraPermission();
     }
 
     private void initViews() {
+        legendLayout = findViewById(R.id.legendLayout);
         tvHeaderStatus = findViewById(R.id.tvHeaderStatus);
         viewFinder = findViewById(R.id.viewFinder);
         scrollViewResult = findViewById(R.id.scrollViewResult);
@@ -110,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnBackToCamera = findViewById(R.id.btnBackToCamera);
         ivMaskedResult = findViewById(R.id.ivMaskedResult);
+
 
     }
 
@@ -276,8 +284,9 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
 
+
                             StringBuilder fullLogBuilder = new StringBuilder();
-                            fullLogBuilder.append("원본\n");
+                            fullLogBuilder.append("OCR 결과\n");
                             fullLogBuilder.append(documentData.GetFullText());
 
                             StringBuilder temp =  new StringBuilder();
@@ -289,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
                                             JSONObject request = createJsonRequest(documentData, result, MaskingMethod.PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING);
                                             Log.d("Request_LOG","서버 요청:\n"+ request.toString());
-                                            fullLogBuilder.append(request.toString());
+
                                             temp.append(request.toString());
 
                                             String url = "https://clubhouse-triceps-staunch.ngrok-free.dev/analyze/sentences"; // TODO: 서버 주소로 변경
@@ -306,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                                     runOnUiThread(() -> {
-                                                        endUserInterface(responseDataList, documentData, 0,body);
+                                                        endUserInterface(responseDataList, documentData, 0,body,fullLogBuilder.toString());
                                                     });
                                                 }
 
@@ -434,6 +443,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUIState(UIState state) {
+
         switch (state) {
             case CAMERA:
                 tvHeaderStatus.setText("사진 촬영");
@@ -441,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
                 scrollViewResult.setVisibility(View.GONE);
                 btnCapture.setVisibility(View.VISIBLE);
                 btnBackToCamera.setVisibility(View.GONE);
+                legendLayout.setVisibility(View.GONE);
                 break;
 
             case RESULT:
@@ -449,12 +460,14 @@ public class MainActivity extends AppCompatActivity {
                 scrollViewResult.setVisibility(View.VISIBLE);
                 btnCapture.setVisibility(View.GONE);
                 btnBackToCamera.setVisibility(View.VISIBLE);
+                legendLayout.setVisibility(View.VISIBLE);
                 break;
 
             case PROCESSING:
                 tvHeaderStatus.setText("처리 중...");
                 btnCapture.setVisibility(View.GONE);
                 btnBackToCamera.setVisibility(View.GONE);
+                legendLayout.setVisibility(View.GONE);
                 break;
         }
     }
@@ -523,7 +536,7 @@ public class MainActivity extends AppCompatActivity {
 
     //현재 05.02일자 테스트 기준으로 pageIndex 는 0으로 고정(즉 page 1장 짜리에 대해서만 고려함)
     @SuppressLint("ClickableViewAccessibility")
-    private void endUserInterface(List<ResponseData> responseDataList , DocumentData documentData, int pageIndex , String requestJsonString)
+    private void endUserInterface(List<ResponseData> responseDataList , DocumentData documentData, int pageIndex , String requestJsonString ,String Origin)
     {
 
          List<DocumentSentence> dangerSentenceList = new ArrayList<>();
@@ -553,7 +566,7 @@ public class MainActivity extends AppCompatActivity {
                 ivMaskedResult.setImageBitmap(outImage);
             }
 
-            tvOcrResult.setText("red : 수정 요청( 고 위험 ) | yellow : 수정 권장( 중 위험 )| blue : 검토 권장( 저 위험 ) | 나머지 위험 사항 없음");
+            tvOcrResult.setText(Origin);
 
             updateUIState(UIState.RESULT);
 

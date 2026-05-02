@@ -86,7 +86,57 @@
             android:layout_marginEnd="16dp"
             android:text="다시 촬영"
             android:visibility="gone" />
+        <LinearLayout android:id="@+id/legendLayout"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp">
 
+            <!-- Red: 수정 요청 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● "
+                android:textColor="#FF0000" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:text="수정 요청(고)"
+                android:textSize="12sp"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Yellow: 수정 권장 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● "
+                android:textColor="#FFB300" /> <!-- 가독성을 위해 약간 진한 노란색/주황색 사용 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:text="수정 권장(중)"
+                android:textSize="12sp"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Blue: 검토 권장 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● "
+                android:textColor="#0000FF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:text="검토 권장(저)"
+                android:textSize="12sp" />
+
+        </LinearLayout>
         <Button
             android:id="@+id/btn_log_view"
             android:layout_width="wrap_content"
