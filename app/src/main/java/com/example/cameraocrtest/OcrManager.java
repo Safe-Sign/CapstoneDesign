@@ -14,7 +14,7 @@ public class OcrManager {
     private final TextRecognizer recognizer;
 
     public interface OnOcrCompleteListener {
-        void onSuccess(DocumentData documentData);
+        void onSuccess(DocumentData documentData) throws InterruptedException;
         void onError(Exception e);
     }
 
@@ -28,8 +28,12 @@ public class OcrManager {
         recognizer.process(image)
                 .addOnSuccessListener(result -> {
                     // OCR 에서 얻어낸 데이터 그 자체를 즉 오브젝트 자체를 파서에게 전달
-                    DocumentData documentData = MlKitDocumentParser.paser(result);
-                    listener.onSuccess(documentData);
+                    DocumentData documentData = MlKitDocumentParser.Paser(result);
+                    try {
+                        listener.onSuccess(documentData);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 })
                 .addOnFailureListener(e -> {
                     e.printStackTrace();

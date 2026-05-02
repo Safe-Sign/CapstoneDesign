@@ -11,7 +11,6 @@ package com.example.cameraocrtest.data;
 // DocumentData 를 형성해 내어줌
 
 
-import com.example.cameraocrtest.data.DocumentBlock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,19 +21,19 @@ public class DocumentData {
         this.blocks = new ArrayList<>();
     }
 
-    public void addBlock(DocumentBlock block) {
+    public void AddBlock(DocumentBlock block) {
         this.blocks.add(block);
     }
 
-    public List<DocumentBlock> getBlocks() {
+    public List<DocumentBlock> GetBlocks() {
         return blocks;
     }
 
-    public String getFullText() {
+    public String GetFullText() {
         StringBuilder sb = new StringBuilder();
         for (DocumentBlock block : blocks) {
             // 문단 구분을 위해 줄 바꿈 2번 함
-            sb.append(block.getBlockText()).append("\n\n"); 
+            sb.append(block.GetBlockText()).append("\n\n");
         }
         return sb.toString().trim();
     }
