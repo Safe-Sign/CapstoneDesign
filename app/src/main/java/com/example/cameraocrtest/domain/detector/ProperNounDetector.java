@@ -78,7 +78,7 @@ public class ProperNounDetector {
 
                 String commonSubstring = longestCommonSubstring(resultNor, transliteratedNor);
                 float matchingRatio = commonSubstring.length() / (float)transliteratedNor.length();
-                if (matchingRatio > 0.65F) {
+                if (matchingRatio > 0.3F) {
                     matchedList.add(new ProperNounHit(i.sequenceNumber, i.origin, i.sourceInfo));
                 }
 

@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -141,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
         JSONArray sentenceField = new JSONArray();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            jsonObj.append("session_id", "test02");
-            jsonObj.append("filename", "test_contract.jpg");
+            jsonObj.put("session_id", "test02");
+            jsonObj.put("filename", "test_contract.jpg");
         }
 
 
@@ -285,22 +286,27 @@ public class MainActivity extends AppCompatActivity {
                                     , new ProperNounDetector.OnDetectionCompleteListener() {
                                         @Override
                                         public void onComplete(List<ProperNounHit> result) throws JSONException {
-                                            JSONObject request = createJsonRequest(documentData, result, MaskingMethod.KOELECTRA_AND_REGEX_MASKING);
+
+                                            JSONObject request = createJsonRequest(documentData, result, MaskingMethod.PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING);
+                                            Log.d("Request_LOG","서버 요청:\n"+ request.toString());
                                             fullLogBuilder.append(request.toString());
                                             temp.append(request.toString());
 
-                                            String url = "https://YOUR_SERVER_HOST/api/analyze"; // TODO: 서버 주소로 변경
+                                            String url = "https://clubhouse-triceps-staunch.ngrok-free.dev/analyze/sentences"; // TODO: 서버 주소로 변경
                                             String json = request.toString();
 
                                             NetworkClient networkClient = new NetworkClient();
                                             networkClient.postJson(url, json, new NetworkClient.ApiCallback() {
                                                 @Override
                                                 public void onSuccess(String body) {
+                                                    Log.d("JSON_LOG", "서버 응답:\n" + body);
                                                     // ✅ 서버 응답 JSON 파싱 후 UI 업데이트
                                                     List<ResponseData> responseDataList = parseServerResponse(body);
 
+
+
                                                     runOnUiThread(() -> {
-                                                        endUserInterface(responseDataList, documentData, 0, json);
+                                                        endUserInterface(responseDataList, documentData, 0,body);
                                                     });
                                                 }
 
@@ -312,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                                                     });
                                                 }
                                             });
-//                                              //test
+//                                          //test
 //                                            String dummyServerResponseJson = "{\n" +
 //                                                    "  \"results\": [\n" +
 //                                                    "    {\n" +
@@ -678,35 +684,50 @@ public class MainActivity extends AppCompatActivity {
     private List<ResponseData> parseServerResponse(String jsonString) {
         List<ResponseData> responseDataList = new ArrayList<>();
 
+        if (jsonString == null || jsonString.isEmpty()) {
+            Log.e("ParseError", "서버 응답이 비어있습니다.");
+            return responseDataList;
+        }
+
         try {
-            // 1. 최상위 JSON 객체 생성
             JSONObject rootObject = new JSONObject(jsonString);
 
-            // 2. "results" 배열 꺼내기
-            JSONArray resultsArray = rootObject.getJSONArray("results");
+            // 1. 최상위 객체에서 'llm_result' 객체를 먼저 꺼냄.
+            JSONObject llmResultObject = rootObject.optJSONObject("llm_result");
 
-            // 3. 배열을 순회하며 ResponseData 객체로 만들기
+            if (llmResultObject == null) {
+                Log.e("ParseError", "JSON에 'llm_result' 객체가 없습니다.");
+                return responseDataList;
+            }
+
+            // 2. 'llm_result' 객체 안에서 'results' 배열을 꺼냅니다.
+            JSONArray resultsArray = llmResultObject.optJSONArray("results");
+
+            if (resultsArray == null) {
+                Log.e("ParseError", "JSON에 'results' 배열이 없습니다.");
+                return responseDataList;
+            }
+
             for (int i = 0; i < resultsArray.length(); i++) {
                 JSONObject item = resultsArray.getJSONObject(i);
 
+                int blockIdx = item.optInt("block_id", -1);
+                int sentenceIdx = item.optInt("sentence_id", -1);
+                int state = item.optInt("state", -1);
 
-                int blockIdx = item.getInt("block_id");
-                int sentenceIdx = item.getInt("sentence_id");
+                String reason = item.optString("reason", "");
+                String law = item.optString("law", "");
+                String action = item.optString("action", "");
 
-                // 나머지 데이터는 그대로 꺼냅니다.
-                int state = item.getInt("state");
-                String reason = item.getString("reason");
-                String law = item.getString("law");
-                String action = item.getString("action");
-
-                // 객체를 생성하여 리스트에 추가
                 ResponseData data = new ResponseData(blockIdx, sentenceIdx, state, reason, law, action);
                 responseDataList.add(data);
             }
 
+            Log.d("ParseSuccess", "파싱 성공! 총 " + responseDataList.size() + "개의 데이터를 읽었습니다.");
+
         } catch (JSONException e) {
-            // JSON 형식이 잘못되었거나 키 값이 없을 때의 예외 처리
             e.printStackTrace();
+            Log.e("ParseError", "JSON 파싱 중 에러 발생: " + e.getMessage());
         }
 
         return responseDataList;
