@@ -552,6 +552,9 @@ public class MainActivity extends AppCompatActivity {
             if (outImage != null) {
                 ivMaskedResult.setImageBitmap(outImage);
             }
+
+            tvOcrResult.setText("red : 수정 요청( 고 위험 ) | yellow : 수정 권장( 중 위험 )| blue : 검토 권장( 저 위험 ) | 나머지 위험 사항 없음");
+
             updateUIState(UIState.RESULT);
 
             ivMaskedResult.setOnTouchListener( (v, event) -> {
