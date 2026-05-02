@@ -278,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
                             fullLogBuilder.append("원본\n");
                             fullLogBuilder.append(documentData.GetFullText());
 
+                            StringBuilder temp =  new StringBuilder();
                             // ProperNounCheck
                             properNounDetector.startDetection(documentData
                                     , new ProperNounDetector.OnDetectionCompleteListener() {
@@ -285,13 +286,81 @@ public class MainActivity extends AppCompatActivity {
                                         public void onComplete(List<ProperNounHit> result) throws JSONException {
                                             JSONObject request = createJsonRequest(documentData, result, MaskingMethod.KOELECTRA_AND_REGEX_MASKING);
                                             fullLogBuilder.append(request.toString());
+                                            temp.append(request.toString());
                                             // 5. 누적된 전체 로그 텍스트를 화면에 띄우기
-                                            runOnUiThread(() -> {
-                                                tvOcrResult.setText(fullLogBuilder.toString());
-                                                updateUIState(UIState.RESULT);
-                                            });
+//                                            runOnUiThread(() -> {
+//                                                tvOcrResult.setText(fullLogBuilder.toString());
+//                                                updateUIState(UIState.RESULT);
+//                                            });
                                         }
                                     });
+
+
+
+                            String dummyServerResponseJson = "{\n" +
+                                    "  \"results\": [\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 0,\n" +
+                                    "      \"sentence_id\": 0,\n" +
+                                    "      \"state\": 0,\n" +
+                                    "      \"reason\": \"정상 조항입니다.\",\n" +
+                                    "      \"law\": \"\",\n" +
+                                    "      \"action\": \"이상 없음\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 0,\n" +
+                                    "      \"sentence_id\": 1,\n" +
+                                    "      \"state\": 0,\n" +
+                                    "      \"reason\": \"정상 조항입니다.\",\n" +
+                                    "      \"law\": \"\",\n" +
+                                    "      \"action\": \"이상 없음\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 1,\n" +
+                                    "      \"sentence_id\": 0,\n" +
+                                    "      \"state\": 0,\n" +
+                                    "      \"reason\": \"정상 조항입니다.\",\n" +
+                                    "      \"law\": \"\",\n" +
+                                    "      \"action\": \"이상 없음\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 1,\n" +
+                                    "      \"sentence_id\": 1,\n" +
+                                    "      \"state\": 2,\n" +
+                                    "      \"reason\": \"건강 상태 정보 수집\",\n" +
+                                    "      \"law\": \"개인정보보호법 제20조\",\n" +
+                                    "      \"action\": \"수정 권장\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 2,\n" +
+                                    "      \"sentence_id\": 0,\n" +
+                                    "      \"state\": 2,\n" +
+                                    "      \"reason\": \"종교 정보 수집\",\n" +
+                                    "      \"law\": \"개인정보보호법 제21조\",\n" +
+                                    "      \"action\": \"수정 권장\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 2,\n" +
+                                    "      \"sentence_id\": 1,\n" +
+                                    "      \"state\": 3,\n" +
+                                    "      \"reason\": \"사회적 신분(노조 활동 이력) 정보 수집\",\n" +
+                                    "      \"law\": \"개인정보보호법 제22조\",\n" +
+                                    "      \"action\": \"수정 요청\"\n" +
+                                    "    },\n" +
+                                    "    {\n" +
+                                    "      \"block_id\": 2,\n" +
+                                    "      \"sentence_id\": 2,\n" +
+                                    "      \"state\": 2,\n" +
+                                    "      \"reason\": \"병역 사항 수집\",\n" +
+                                    "      \"law\": \"개인정보보호법 제23조\",\n" +
+                                    "      \"action\": \"수정 권장\"\n" +
+                                    "    }\n" +
+                                    "  ]\n" +
+                                    "}";
+                            List<ResponseData> responseDataList = parseServerResponse(dummyServerResponseJson);
+
+                            endUserInterface(responseDataList, documentData, 0,""+ temp.length());
+
 
 
                         }
