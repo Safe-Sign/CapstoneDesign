@@ -90,8 +90,6 @@ public class KoElectraTfliteEngine {
         tfliteInterpreter.runForMultipleInputsOutputs(inputs, outputs);
 
 
-
-        System.out.println("====== AI 추론 결과 분석 ======");
         for (int i = 0; i < MAX_SEQ_LEN; i++) {
             // 패딩 부분은 분석할 필요 없음
             if (inputIds[0][i] == 0) continue;
@@ -113,7 +111,7 @@ public class KoElectraTfliteEngine {
 
             int originalWordIdx = inputTokensWordIdx[i][1];
 
-            //  임계치 90% 이상
+            //  임계치 80% 이상
             if (bestLabelId != 0 && probability >= 80.f && originalWordIdx != -1) {
                 DocumentWord targetWord = sentence.getWords().get(originalWordIdx);
 
