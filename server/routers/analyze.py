@@ -152,7 +152,14 @@ def run_llm(text: str) -> dict:
             ],
             temperature=0.1
         )
-        raw = response.choices[0].message.content
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```", 2)[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+            if raw.endswith("```"):
+                raw = raw[:-3].strip()
         result = json.loads(raw)
 
         if "results" not in result:
@@ -187,8 +194,8 @@ async def analyze(ocr_request: OCRRequest, db: Session = Depends(get_db)):
 
     logger.info("분석 요청 수신 - session: %s, filename: %s", ocr_request.session_id, ocr_request.filename)
 
-    masked_text = mask_pii(ocr_request.text)
-    llm_result = run_llm(masked_text)
+    ### masked_text = mask_pii(ocr_request.text)
+    llm_result = run_llm(combined_text)
 
     entry = OCRData(
         session_id=ocr_request.session_id,
