@@ -2,6 +2,7 @@ package com.example.cameraocrtest;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -83,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
     private String OrginTextBuffer;
 
     private LinearLayout legendLayout;
+
+    private LinearLayout layoutLoading;
+
     // 권한 요청 런처
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -117,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnBackToCamera = findViewById(R.id.btnBackToCamera);
         ivMaskedResult = findViewById(R.id.ivMaskedResult);
-
+        layoutLoading = findViewById(R.id.layoutLoading); // 추가
 
     }
 
@@ -266,10 +270,14 @@ public class MainActivity extends AppCompatActivity {
         btnCapture.setOnClickListener(v -> {
             updateUIState(UIState.PROCESSING);
 
+
             // 1. 비동기 사진 촬영 요청
             cameraManager.takePicture(new CameraManager.OnPictureTakenListener() {
+                //시간 측정 시작
+                final long processStartTime = System.currentTimeMillis();
                 @Override
                 public void onSuccess(Bitmap bitmap) {
+
                     //사진 찍은 이미지 마스킹 manager 에 전달
                     imageMaskingManager.addInputImage(bitmap);
                     // 2 촬영된 Bitmap을 그대로 OCR 분석에 전달
@@ -316,13 +324,21 @@ public class MainActivity extends AppCompatActivity {
 
                                                     runOnUiThread(() -> {
                                                         endUserInterface(responseDataList, documentData, 0,body,fullLogBuilder.toString());
+                                                        long processEndTime = System.currentTimeMillis();
+                                                        Log.d("Time_LOG", "최종 총 소요 시간: " + (processEndTime - processStartTime) + "ms");
                                                     });
+
+
                                                 }
 
                                                 @Override
                                                 public void onFailure(Exception e) {
                                                     runOnUiThread(() -> {
                                                         tvOcrResult.setText("서버 요청 실패: " + e.getMessage());
+                                                        if (layoutLoading != null) {
+                                                            layoutLoading.setVisibility(View.GONE);
+                                                        }
+
                                                         updateUIState(UIState.RESULT);
                                                     });
                                                 }
@@ -429,8 +445,18 @@ public class MainActivity extends AppCompatActivity {
         // 결과 화면에서 다시 카메라로 돌아가는 버튼
         btnBackToCamera.setOnClickListener(v -> {
 
-            imageMaskingManager.PopImageBufferList();
-            updateUIState(UIState.CAMERA);
+            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+
+
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+            finish();
+
+
+            overridePendingTransition(0, 0);
+            //imageMaskingManager.PopImageBufferList();
+            //updateUIState(UIState.CAMERA);
         });
     }
 
@@ -443,7 +469,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUIState(UIState state) {
-
         switch (state) {
             case CAMERA:
                 tvHeaderStatus.setText("사진 촬영");
@@ -452,6 +477,8 @@ public class MainActivity extends AppCompatActivity {
                 btnCapture.setVisibility(View.VISIBLE);
                 btnBackToCamera.setVisibility(View.GONE);
                 legendLayout.setVisibility(View.GONE);
+
+                if (layoutLoading != null) layoutLoading.setVisibility(View.GONE);
                 break;
 
             case RESULT:
@@ -461,17 +488,22 @@ public class MainActivity extends AppCompatActivity {
                 btnCapture.setVisibility(View.GONE);
                 btnBackToCamera.setVisibility(View.VISIBLE);
                 legendLayout.setVisibility(View.VISIBLE);
+
+                if (layoutLoading != null) layoutLoading.setVisibility(View.GONE);
                 break;
 
             case PROCESSING:
                 tvHeaderStatus.setText("처리 중...");
+                viewFinder.setVisibility(View.INVISIBLE); 
+                scrollViewResult.setVisibility(View.GONE);
                 btnCapture.setVisibility(View.GONE);
                 btnBackToCamera.setVisibility(View.GONE);
                 legendLayout.setVisibility(View.GONE);
+
+                if (layoutLoading != null) layoutLoading.setVisibility(View.VISIBLE);
                 break;
         }
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

@@ -1,166 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:weightSum="100">
+    android:layout_height="match_parent">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="10"
-        android:background="#EEEEEE">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="100">
 
-        <TextView
-            android:id="@+id/tvHeaderStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="사진 촬영"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/containerContent"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="80"
-        android:background="#000000">
-
-        <androidx.camera.view.PreviewView
-            android:id="@+id/viewFinder"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:background="#EEEEEE">
 
-        <ScrollView
-            android:id="@+id/scrollViewResult"
+            <TextView
+                android:id="@+id/tvHeaderStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="사진 촬영"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/containerContent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:background="#FFFFFF">
+            android:layout_height="0dp"
+            android:layout_weight="80"
+            android:background="#000000">
 
-            <LinearLayout
+            <androidx.camera.view.PreviewView
+                android:id="@+id/viewFinder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ScrollView
+                android:id="@+id/scrollViewResult"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:background="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivMaskedResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/tvOcrResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#000000"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:background="#DDDDDD">
+
+            <Button
+                android:id="@+id/btnCapture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="촬영" />
+
+            <Button
+                android:id="@+id/btnBackToCamera"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="16dp"
+                android:text="다시 촬영"
+                android:visibility="gone" />
+
+            <LinearLayout android:id="@+id/legendLayout"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivMaskedResult"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:layout_marginBottom="16dp" />
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_gravity="center">
 
                 <TextView
-                    android:id="@+id/tvOcrResult"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● "
+                    android:textColor="#FF0000" />
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#000000"
-                    android:textSize="16sp" />
+                    android:text="수정 요청(고)"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● "
+                    android:textColor="#FFB300" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#000000"
+                    android:text="수정 권장(중)"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● "
+                    android:textColor="#0000FF" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#000000"
+                    android:text="검토 권장(저)"
+                    android:textSize="12sp" />
+
             </LinearLayout>
-        </ScrollView>
-    </FrameLayout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="10"
-        android:background="#DDDDDD">
+            <Button
+                android:id="@+id/btn_log_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="로그 확인"
+                android:visibility="gone"
+                android:layout_gravity="start|center_vertical" />
 
-        <Button
-            android:id="@+id/btnCapture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="촬영" />
+        </FrameLayout>
 
-        <Button
-            android:id="@+id/btnBackToCamera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="16dp"
-            android:text="다시 촬영"
-            android:visibility="gone" />
-        <LinearLayout android:id="@+id/legendLayout"
-            android:visibility="gone"
+        <LinearLayout
+            android:id="@+id/layout_detail_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp">
+            android:orientation="vertical"
+            android:background="#EEEEEE"
+            android:padding="16dp"
+            android:visibility="gone">
 
-            <!-- Red: 수정 요청 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="● "
-                android:textColor="#FF0000" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:text="수정 요청(고)"
-                android:textSize="12sp"
-                android:layout_marginEnd="12dp" />
-
-            <!-- Yellow: 수정 권장 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="● "
-                android:textColor="#FFB300" /> <!-- 가독성을 위해 약간 진한 노란색/주황색 사용 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:text="수정 권장(중)"
-                android:textSize="12sp"
-                android:layout_marginEnd="12dp" />
-
-            <!-- Blue: 검토 권장 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="● "
-                android:textColor="#0000FF" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:text="검토 권장(저)"
-                android:textSize="12sp" />
-
+            <TextView android:id="@+id/tv_reason" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/tv_law" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/tv_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#FF0000" />
         </LinearLayout>
-        <Button
-            android:id="@+id/btn_log_view"
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#A6000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:elevation="10dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ProgressBar
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:indeterminateTint="@android:color/white" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="로그 확인"
-            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:text="Safe-Sign AI가 계약서의\n독소 조항을 분석하고 있습니다..."
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </FrameLayout>
-
-
-    android:id="@+id/layout_detail_info"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="#EEEEEE"
-    android:padding="16dp"
-    android:visibility="gone"
-    app:layout_constraintBottom_toBottomOf="parent">
-
-    <TextView android:id="@+id/tv_reason" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <TextView android:id="@+id/tv_law" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <TextView android:id="@+id/tv_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#FF0000" />
-</LinearLayout>
+</FrameLayout>
