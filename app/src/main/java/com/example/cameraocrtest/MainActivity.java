@@ -307,9 +307,9 @@ public class MainActivity extends AppCompatActivity {
                                             JSONObject request = createJsonRequest(documentData, result, MaskingMethod.PROPER_NOUN_AND_KOELECTRA_AND_REGEX_MASKING);
                                             Log.d("Request_LOG","서버 요청:\n"+ request.toString());
 
-                                            temp.append(request.toString());
+                                            temp.append(request.toString());//https://absence-tragedy-underfed.ngrok-free.dev/analyze/sentences
 
-                                            String url = "https://clubhouse-triceps-staunch.ngrok-free.dev/analyze/sentences"; // TODO: 서버 주소로 변경
+                                            String url = "https://absence-tragedy-underfed.ngrok-free.dev/analyze/sentences"; // TODO: 서버 주소로 변경
                                             String json = request.toString();
 
                                             NetworkClient networkClient = new NetworkClient();
@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
 
             case PROCESSING:
                 tvHeaderStatus.setText("처리 중...");
-                viewFinder.setVisibility(View.INVISIBLE); 
+                viewFinder.setVisibility(View.INVISIBLE);
                 scrollViewResult.setVisibility(View.GONE);
                 btnCapture.setVisibility(View.GONE);
                 btnBackToCamera.setVisibility(View.GONE);
